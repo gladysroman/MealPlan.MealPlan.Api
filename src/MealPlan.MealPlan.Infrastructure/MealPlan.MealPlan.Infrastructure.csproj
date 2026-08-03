@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\MealPlan.MealPlan.Application\MealPlan.MealPlan.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.9" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Persistence\SeedData\users.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Persistence\SeedData\meals.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Persistence\SeedData\side_dishes.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

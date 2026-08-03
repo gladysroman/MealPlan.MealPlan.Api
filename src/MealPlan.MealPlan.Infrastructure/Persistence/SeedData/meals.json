@@ -1,0 +1,26 @@
+[
+  {
+    "meal_id": "meal_001",
+    "user_id": "usr_001",
+    "side_dish_ids": ["sd_001", "sd_002"],
+    "liked_amount": 142,
+    "created_date": "2026-06-20",
+    "updated_date": "2026-06-26"
+  },
+  {
+    "meal_id": "meal_002",
+    "user_id": "usr_001",
+    "side_dish_ids": ["sd_003"],
+    "liked_amount": 37,
+    "created_date": "2026-06-22",
+    "updated_date": "2026-06-22"
+  },
+  {
+    "meal_id": "meal_003",
+    "user_id": "usr_002",
+    "side_dish_ids": ["sd_004"],
+    "liked_amount": 8,
+    "created_date": "2026-06-25",
+    "updated_date": "2026-06-25"
+  }
+]

@@ -1,0 +1,110 @@
+[
+  {
+    "side_dish_id": "sd_001",
+    "meal_id": "meal_001",
+    "user_id": "usr_001",
+    "name": "BBQ Chicken",
+    "description": "Grilled chicken breast with a smoky BBQ glaze.",
+    "cooking_recipe": "Season chicken, grill 6 minutes per side, brush with BBQ sauce.",
+    "ingredients": [
+      {
+        "ingredient_id": "ing_001",
+        "name": "Chicken",
+        "amount": 200,
+        "unit": "g",
+        "calories": 330,
+        "carbs_g": 0,
+        "protein_g": 62,
+        "fat_g": 7.2
+      }
+    ],
+    "created_date": "2026-06-20",
+    "updated_date": "2026-06-26"
+  },
+  {
+    "side_dish_id": "sd_002",
+    "meal_id": "meal_001",
+    "user_id": "usr_001",
+    "name": "Steamed Broccoli",
+    "description": "Lightly steamed broccoli florets.",
+    "cooking_recipe": "Steam broccoli for 5 minutes until tender-crisp.",
+    "ingredients": [
+      {
+        "ingredient_id": "ing_008",
+        "name": "Broccoli",
+        "amount": 150,
+        "unit": "g",
+        "calories": 51,
+        "carbs_g": 9.9,
+        "protein_g": 4.2,
+        "fat_g": 0.6
+      }
+    ],
+    "created_date": "2026-06-20",
+    "updated_date": "2026-06-20"
+  },
+  {
+    "side_dish_id": "sd_003",
+    "meal_id": "meal_002",
+    "user_id": "usr_001",
+    "name": "Salmon and Rice",
+    "description": "Pan-seared salmon over brown rice.",
+    "cooking_recipe": "Sear salmon 4 minutes per side, serve over cooked brown rice.",
+    "ingredients": [
+      {
+        "ingredient_id": "ing_002",
+        "name": "Salmon",
+        "amount": 180,
+        "unit": "g",
+        "calories": 374,
+        "carbs_g": 0,
+        "protein_g": 36,
+        "fat_g": 23.4
+      },
+      {
+        "ingredient_id": "ing_014",
+        "name": "Brown Rice",
+        "amount": 100,
+        "unit": "g",
+        "calories": 111,
+        "carbs_g": 23,
+        "protein_g": 2.6,
+        "fat_g": 0.9
+      }
+    ],
+    "created_date": "2026-06-22",
+    "updated_date": "2026-06-22"
+  },
+  {
+    "side_dish_id": "sd_004",
+    "meal_id": "meal_003",
+    "user_id": "usr_002",
+    "name": "Overnight Oats",
+    "description": "Rolled oats soaked with milk and blueberries.",
+    "cooking_recipe": "Combine oats and milk, refrigerate overnight, top with blueberries.",
+    "ingredients": [
+      {
+        "ingredient_id": "ing_015",
+        "name": "Rolled Oats",
+        "amount": 80,
+        "unit": "g",
+        "calories": 311,
+        "carbs_g": 53,
+        "protein_g": 13.5,
+        "fat_g": 5.5
+      },
+      {
+        "ingredient_id": "ing_012",
+        "name": "Blueberries",
+        "amount": 50,
+        "unit": "g",
+        "calories": 29,
+        "carbs_g": 7.3,
+        "protein_g": 0.4,
+        "fat_g": 0.2
+      }
+    ],
+    "created_date": "2026-06-25",
+    "updated_date": "2026-06-25"
+  }
+]

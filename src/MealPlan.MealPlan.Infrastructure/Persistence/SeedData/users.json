@@ -1,0 +1,22 @@
+[
+  {
+    "user_id": "usr_001",
+    "name": "Jordan Smith",
+    "email": "jordan@email.com",
+    "pref_units": "metric",
+    "friend_ids": ["usr_002"],
+    "meal_ids": ["meal_001", "meal_002"],
+    "created_date": "2026-01-10",
+    "updated_date": "2026-06-26"
+  },
+  {
+    "user_id": "usr_002",
+    "name": "Alex Chen",
+    "email": "alex@email.com",
+    "pref_units": "imperial",
+    "friend_ids": ["usr_001"],
+    "meal_ids": ["meal_003"],
+    "created_date": "2026-02-14",
+    "updated_date": "2026-06-20"
+  }
+]
