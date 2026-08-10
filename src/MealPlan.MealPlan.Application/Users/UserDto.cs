@@ -12,6 +12,12 @@ public record UserDto(
     [property: JsonPropertyName("created_date")] DateTime CreatedDate,
     [property: JsonPropertyName("updated_date")] DateTime UpdatedDate);
 
+// Response for GetUserInfo — the user profile page's core fields only.
+public record UserProfileDto(
+    [property: JsonPropertyName("name")] string Name,
+    [property: JsonPropertyName("email")] string Email,
+    [property: JsonPropertyName("pref_units")] string PrefUnits);
+
 public record CreateUserRequest(
     [property: JsonPropertyName("name")] string Name,
     [property: JsonPropertyName("email")] string Email,

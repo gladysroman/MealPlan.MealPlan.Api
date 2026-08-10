@@ -1,3 +1,4 @@
+using MealPlan.MealPlan.Api.Endpoints;
 using MealPlan.MealPlan.Application.Meals;
 using MealPlan.MealPlan.Application.SideDishes;
 using MealPlan.MealPlan.Application.Users;
@@ -25,6 +26,6 @@ if (app.Environment.IsDevelopment())
 
 await app.Services.SeedInfrastructureDataAsync();
 
-// Endpoints are intentionally not mapped yet — this is the bare-bones scaffold.
+app.MapUsersEndpoints();
 
 app.Run();
