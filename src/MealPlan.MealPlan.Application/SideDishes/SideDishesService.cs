@@ -18,8 +18,8 @@ public class SideDishesService(ISideDishRepository repository)
             SideDishId = $"sd_{Guid.NewGuid():N}",
             MealId = request.MealId,
             UserId = request.UserId,
-            Name = request.Name,
-            Description = request.Description,
+            SideDishName = request.SideDishName,
+            SideDishDescription = request.SideDishDescription,
             CookingRecipe = request.CookingRecipe,
             Ingredients = request.Ingredients.Select(ToEntity).ToList(),
             CreatedDate = date,
@@ -37,8 +37,8 @@ public class SideDishesService(ISideDishRepository repository)
             return null;
         }
 
-        existing.Name = request.Name;
-        existing.Description = request.Description;
+        existing.SideDishName = request.SideDishName;
+        existing.SideDishDescription = request.SideDishDescription;
         existing.CookingRecipe = request.CookingRecipe;
         existing.Ingredients = request.Ingredients.Select(ToEntity).ToList();
         existing.UpdatedDate = DateTime.UtcNow;

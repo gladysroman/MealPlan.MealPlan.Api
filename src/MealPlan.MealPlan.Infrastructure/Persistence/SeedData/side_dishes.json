@@ -3,9 +3,10 @@
     "side_dish_id": "sd_001",
     "meal_id": "meal_001",
     "user_id": "usr_001",
-    "name": "BBQ Chicken",
-    "description": "Grilled chicken breast with a smoky BBQ glaze.",
+    "side_dish_name": "BBQ Chicken",
+    "side_dish_description": "Grilled chicken breast with a smoky BBQ glaze.",
     "cooking_recipe": "Season chicken, grill 6 minutes per side, brush with BBQ sauce.",
+    "allergens": [],
     "ingredients": [
       {
         "ingredient_id": "ing_001",
@@ -25,9 +26,10 @@
     "side_dish_id": "sd_002",
     "meal_id": "meal_001",
     "user_id": "usr_001",
-    "name": "Steamed Broccoli",
-    "description": "Lightly steamed broccoli florets.",
+    "side_dish_name": "Steamed Broccoli",
+    "side_dish_description": "Lightly steamed broccoli florets.",
     "cooking_recipe": "Steam broccoli for 5 minutes until tender-crisp.",
+    "allergens": [],
     "ingredients": [
       {
         "ingredient_id": "ing_008",
@@ -47,9 +49,10 @@
     "side_dish_id": "sd_003",
     "meal_id": "meal_002",
     "user_id": "usr_001",
-    "name": "Salmon and Rice",
-    "description": "Pan-seared salmon over brown rice.",
+    "side_dish_name": "Salmon and Rice",
+    "side_dish_description": "Pan-seared salmon over brown rice.",
     "cooking_recipe": "Sear salmon 4 minutes per side, serve over cooked brown rice.",
+    "allergens": ["fish"],
     "ingredients": [
       {
         "ingredient_id": "ing_002",
@@ -79,9 +82,10 @@
     "side_dish_id": "sd_004",
     "meal_id": "meal_003",
     "user_id": "usr_002",
-    "name": "Overnight Oats",
-    "description": "Rolled oats soaked with milk and blueberries.",
+    "side_dish_name": "Overnight Oats",
+    "side_dish_description": "Rolled oats soaked with milk and blueberries.",
     "cooking_recipe": "Combine oats and milk, refrigerate overnight, top with blueberries.",
+    "allergens": ["gluten", "dairy"],
     "ingredients": [
       {
         "ingredient_id": "ing_015",

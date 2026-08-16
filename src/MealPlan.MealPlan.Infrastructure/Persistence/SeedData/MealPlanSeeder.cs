@@ -54,7 +54,12 @@ internal static class MealPlanSeeder
         {
             MealId = record.MealId,
             UserId = record.UserId,
+            MealName = record.MealName,
+            MealDescription = record.MealDescription,
             SideDishIds = record.SideDishIds,
+            PrepTimeMinutes = record.PrepTimeMinutes,
+            CookTimeMinutes = record.CookTimeMinutes,
+            Servings = record.Servings,
             LikedAmount = record.LikedAmount,
             CreatedDate = record.CreatedDate,
             UpdatedDate = record.UpdatedDate
@@ -78,9 +83,10 @@ internal static class MealPlanSeeder
             SideDishId = record.SideDishId,
             MealId = record.MealId,
             UserId = record.UserId,
-            Name = record.Name,
-            Description = record.Description,
+            SideDishName = record.SideDishName,
+            SideDishDescription = record.SideDishDescription,
             CookingRecipe = record.CookingRecipe,
+            Allergens = record.Allergens,
             Ingredients = record.Ingredients.Select(ingredient => new SideDishIngredient
             {
                 IngredientId = ingredient.IngredientId,
