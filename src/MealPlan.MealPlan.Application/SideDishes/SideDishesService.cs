@@ -52,7 +52,8 @@ public class SideDishesService(ISideDishRepository repository)
     private static SideDishIngredient ToEntity(SideDishIngredientDto dto) => new()
     {
         IngredientId = dto.IngredientId,
-        Name = dto.Name,
+        IngredientName = dto.IngredientName,
+        Allergens = dto.Allergens.ToList(),
         Amount = dto.Amount,
         Unit = dto.Unit,
         Calories = dto.Calories,

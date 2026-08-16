@@ -6,17 +6,28 @@
     "side_dish_name": "BBQ Chicken",
     "side_dish_description": "Grilled chicken breast with a smoky BBQ glaze.",
     "cooking_recipe": "Season chicken, grill 6 minutes per side, brush with BBQ sauce.",
-    "allergens": [],
     "ingredients": [
       {
         "ingredient_id": "ing_001",
-        "name": "Chicken",
+        "ingredient_name": "Chicken",
+        "allergens": [],
         "amount": 200,
         "unit": "g",
         "calories": 330,
         "carbs_g": 0,
         "protein_g": 62,
         "fat_g": 7.2
+      },
+      {
+        "ingredient_id": "ing_021",
+        "ingredient_name": "BBQ Sauce",
+        "allergens": [],
+        "amount": 30,
+        "unit": "g",
+        "calories": 50,
+        "carbs_g": 13,
+        "protein_g": 0,
+        "fat_g": 0.1
       }
     ],
     "created_date": "2026-06-20",
@@ -29,11 +40,11 @@
     "side_dish_name": "Steamed Broccoli",
     "side_dish_description": "Lightly steamed broccoli florets.",
     "cooking_recipe": "Steam broccoli for 5 minutes until tender-crisp.",
-    "allergens": [],
     "ingredients": [
       {
         "ingredient_id": "ing_008",
-        "name": "Broccoli",
+        "ingredient_name": "Broccoli",
+        "allergens": [],
         "amount": 150,
         "unit": "g",
         "calories": 51,
@@ -52,11 +63,11 @@
     "side_dish_name": "Salmon and Rice",
     "side_dish_description": "Pan-seared salmon over brown rice.",
     "cooking_recipe": "Sear salmon 4 minutes per side, serve over cooked brown rice.",
-    "allergens": ["fish"],
     "ingredients": [
       {
         "ingredient_id": "ing_002",
-        "name": "Salmon",
+        "ingredient_name": "Salmon",
+        "allergens": ["fish"],
         "amount": 180,
         "unit": "g",
         "calories": 374,
@@ -66,7 +77,8 @@
       },
       {
         "ingredient_id": "ing_014",
-        "name": "Brown Rice",
+        "ingredient_name": "Brown Rice",
+        "allergens": [],
         "amount": 100,
         "unit": "g",
         "calories": 111,
@@ -85,11 +97,11 @@
     "side_dish_name": "Overnight Oats",
     "side_dish_description": "Rolled oats soaked with milk and blueberries.",
     "cooking_recipe": "Combine oats and milk, refrigerate overnight, top with blueberries.",
-    "allergens": ["gluten", "dairy"],
     "ingredients": [
       {
         "ingredient_id": "ing_015",
-        "name": "Rolled Oats",
+        "ingredient_name": "Rolled Oats",
+        "allergens": ["gluten"],
         "amount": 80,
         "unit": "g",
         "calories": 311,
@@ -98,8 +110,20 @@
         "fat_g": 5.5
       },
       {
+        "ingredient_id": "ing_020",
+        "ingredient_name": "Milk",
+        "allergens": ["dairy"],
+        "amount": 120,
+        "unit": "ml",
+        "calories": 73,
+        "carbs_g": 5.8,
+        "protein_g": 3.8,
+        "fat_g": 4.0
+      },
+      {
         "ingredient_id": "ing_012",
-        "name": "Blueberries",
+        "ingredient_name": "Blueberries",
+        "allergens": [],
         "amount": 50,
         "unit": "g",
         "calories": 29,

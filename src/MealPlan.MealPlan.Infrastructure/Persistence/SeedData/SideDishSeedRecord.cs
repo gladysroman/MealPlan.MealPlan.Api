@@ -22,9 +22,6 @@ internal sealed class SideDishSeedRecord
     [JsonPropertyName("cooking_recipe")]
     public string CookingRecipe { get; init; } = string.Empty;
 
-    [JsonPropertyName("allergens")]
-    public List<string> Allergens { get; init; } = [];
-
     [JsonPropertyName("ingredients")]
     public List<SideDishIngredientSeedRecord> Ingredients { get; init; } = [];
 
@@ -40,8 +37,11 @@ internal sealed class SideDishIngredientSeedRecord
     [JsonPropertyName("ingredient_id")]
     public string IngredientId { get; init; } = string.Empty;
 
-    [JsonPropertyName("name")]
-    public string Name { get; init; } = string.Empty;
+    [JsonPropertyName("ingredient_name")]
+    public string IngredientName { get; init; } = string.Empty;
+
+    [JsonPropertyName("allergens")]
+    public List<string> Allergens { get; init; } = [];
 
     [JsonPropertyName("amount")]
     public decimal Amount { get; init; }

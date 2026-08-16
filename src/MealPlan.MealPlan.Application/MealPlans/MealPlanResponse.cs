@@ -19,12 +19,10 @@ public record MealPlanResponse(
 {
     public static MealPlanResponse From(Meal meal, IReadOnlyList<SideDish> sideDishes)
     {
-        // Allergens for the page are the de-duplicated union across every side dish.
-        var allergens = sideDishes
-            .SelectMany(sideDish => sideDish.Allergens)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(allergen => allergen, StringComparer.OrdinalIgnoreCase)
-            .ToList();
+        var sideDishResponses = sideDishes.Select(SideDishResponse.From).ToList();
+
+        // Meal-level allergens = union of each side dish's (already-unioned) allergens.
+        var allergens = AllergenSet.Union(sideDishResponses.SelectMany(sideDish => sideDish.Allergens));
 
         return new MealPlanResponse(
             meal.MealId,
@@ -35,8 +33,19 @@ public record MealPlanResponse(
             meal.Servings,
             NutritionPerServingResponse.From(sideDishes, meal.Servings),
             allergens,
-            sideDishes.Select(SideDishResponse.From).ToList());
+            sideDishResponses);
     }
+}
+
+internal static class AllergenSet
+{
+    // De-duplicated (case-insensitive), alphabetically sorted allergen list — allergens
+    // are stored per embedded ingredient and rolled up into unions at read time.
+    public static IReadOnlyList<string> Union(IEnumerable<string> allergens) =>
+        allergens
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .OrderBy(allergen => allergen, StringComparer.OrdinalIgnoreCase)
+            .ToList();
 }
 
 public record NutritionPerServingResponse(
@@ -78,10 +87,12 @@ public record SideDishResponse(
         sideDish.SideDishName,
         sideDish.SideDishDescription,
         sideDish.CookingRecipe,
-        sideDish.Allergens,
+        // Side-dish allergens are the union across its embedded ingredients.
+        AllergenSet.Union(sideDish.Ingredients.SelectMany(ingredient => ingredient.Allergens)),
         sideDish.Ingredients.Select(ingredient => new SideDishIngredientDto(
             ingredient.IngredientId,
-            ingredient.Name,
+            ingredient.IngredientName,
+            ingredient.Allergens,
             ingredient.Amount,
             ingredient.Unit,
             ingredient.Calories,

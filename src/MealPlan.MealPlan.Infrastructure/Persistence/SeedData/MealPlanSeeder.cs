@@ -86,11 +86,11 @@ internal static class MealPlanSeeder
             SideDishName = record.SideDishName,
             SideDishDescription = record.SideDishDescription,
             CookingRecipe = record.CookingRecipe,
-            Allergens = record.Allergens,
             Ingredients = record.Ingredients.Select(ingredient => new SideDishIngredient
             {
                 IngredientId = ingredient.IngredientId,
-                Name = ingredient.Name,
+                IngredientName = ingredient.IngredientName,
+                Allergens = ingredient.Allergens,
                 Amount = ingredient.Amount,
                 Unit = ingredient.Unit,
                 Calories = ingredient.Calories,

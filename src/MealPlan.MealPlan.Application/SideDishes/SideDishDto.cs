@@ -15,7 +15,8 @@ public record SideDishDto(
 
 public record SideDishIngredientDto(
     [property: JsonPropertyName("ingredient_id")] string IngredientId,
-    [property: JsonPropertyName("name")] string Name,
+    [property: JsonPropertyName("ingredient_name")] string IngredientName,
+    [property: JsonPropertyName("allergens")] IReadOnlyList<string> Allergens,
     [property: JsonPropertyName("amount")] decimal Amount,
     [property: JsonPropertyName("unit")] string Unit,
     [property: JsonPropertyName("calories")] int Calories,
