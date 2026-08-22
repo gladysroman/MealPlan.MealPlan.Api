@@ -10,13 +10,13 @@ public class MealPlansService(IMealRepository mealRepository, ISideDishRepositor
     // still returns successfully, with an empty side-dish list.
     public async Task<MealPlanResponse?> GetMealPlanAsync(string userId, string mealId, CancellationToken cancellationToken)
     {
-        var meal = await mealRepository.GetByMealAndUserAsync(mealId, userId, cancellationToken);
+        var meal = await mealRepository.GetByMealIdAndUserIdAsync(mealId, userId, cancellationToken);
         if (meal is null)
         {
             return null;
         }
 
-        var sideDishes = await sideDishRepository.GetByMealAndUserAsync(mealId, userId, cancellationToken);
+        var sideDishes = await sideDishRepository.GetByMealIdAndUserIdAsync(mealId, userId, cancellationToken);
 
         return MealPlanResponse.From(meal, sideDishes);
     }

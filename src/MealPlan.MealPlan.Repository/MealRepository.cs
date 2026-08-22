@@ -13,7 +13,7 @@ public class MealRepository(MealPlanDbContext dbContext) : IMealRepository
     public Task<Meal?> GetByIdAsync(string id, CancellationToken cancellationToken) =>
         dbContext.Meals.AsNoTracking().FirstOrDefaultAsync(m => m.MealId == id, cancellationToken);
 
-    public Task<Meal?> GetByMealAndUserAsync(string mealId, string userId, CancellationToken cancellationToken) =>
+    public Task<Meal?> GetByMealIdAndUserIdAsync(string mealId, string userId, CancellationToken cancellationToken) =>
         dbContext.Meals.AsNoTracking()
             .FirstOrDefaultAsync(m => m.MealId == mealId && m.UserId == userId, cancellationToken);
 
