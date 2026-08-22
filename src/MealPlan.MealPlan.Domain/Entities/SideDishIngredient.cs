@@ -5,7 +5,8 @@ namespace MealPlan.MealPlan.Domain.Entities;
 public class SideDishIngredient
 {
     public string IngredientId { get; set; } = string.Empty;
-    public string Name { get; set; } = string.Empty;
+    public string IngredientName { get; set; } = string.Empty;
+    public List<string> Allergens { get; set; } = [];
     public decimal Amount { get; set; }
     public string Unit { get; set; } = string.Empty;
     public int Calories { get; set; }

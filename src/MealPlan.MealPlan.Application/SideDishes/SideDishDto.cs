@@ -6,8 +6,8 @@ public record SideDishDto(
     [property: JsonPropertyName("side_dish_id")] string SideDishId,
     [property: JsonPropertyName("meal_id")] string MealId,
     [property: JsonPropertyName("user_id")] string UserId,
-    [property: JsonPropertyName("name")] string Name,
-    [property: JsonPropertyName("description")] string Description,
+    [property: JsonPropertyName("side_dish_name")] string SideDishName,
+    [property: JsonPropertyName("side_dish_description")] string SideDishDescription,
     [property: JsonPropertyName("cooking_recipe")] string CookingRecipe,
     [property: JsonPropertyName("ingredients")] IReadOnlyList<SideDishIngredientDto> Ingredients,
     [property: JsonPropertyName("created_date")] DateTime CreatedDate,
@@ -15,7 +15,8 @@ public record SideDishDto(
 
 public record SideDishIngredientDto(
     [property: JsonPropertyName("ingredient_id")] string IngredientId,
-    [property: JsonPropertyName("name")] string Name,
+    [property: JsonPropertyName("ingredient_name")] string IngredientName,
+    [property: JsonPropertyName("allergens")] IReadOnlyList<string> Allergens,
     [property: JsonPropertyName("amount")] decimal Amount,
     [property: JsonPropertyName("unit")] string Unit,
     [property: JsonPropertyName("calories")] int Calories,
@@ -26,13 +27,13 @@ public record SideDishIngredientDto(
 public record CreateSideDishRequest(
     [property: JsonPropertyName("meal_id")] string MealId,
     [property: JsonPropertyName("user_id")] string UserId,
-    [property: JsonPropertyName("name")] string Name,
-    [property: JsonPropertyName("description")] string Description,
+    [property: JsonPropertyName("side_dish_name")] string SideDishName,
+    [property: JsonPropertyName("side_dish_description")] string SideDishDescription,
     [property: JsonPropertyName("cooking_recipe")] string CookingRecipe,
     [property: JsonPropertyName("ingredients")] List<SideDishIngredientDto> Ingredients);
 
 public record UpdateSideDishRequest(
-    [property: JsonPropertyName("name")] string Name,
-    [property: JsonPropertyName("description")] string Description,
+    [property: JsonPropertyName("side_dish_name")] string SideDishName,
+    [property: JsonPropertyName("side_dish_description")] string SideDishDescription,
     [property: JsonPropertyName("cooking_recipe")] string CookingRecipe,
     [property: JsonPropertyName("ingredients")] List<SideDishIngredientDto> Ingredients);

@@ -1,4 +1,5 @@
 using MealPlan.MealPlan.Api.Endpoints;
+using MealPlan.MealPlan.Application.MealPlans;
 using MealPlan.MealPlan.Application.Meals;
 using MealPlan.MealPlan.Application.SideDishes;
 using MealPlan.MealPlan.Application.Users;
@@ -14,6 +15,7 @@ builder.Services.AddRepositories();
 builder.Services.AddScoped<UsersService>();
 builder.Services.AddScoped<MealsService>();
 builder.Services.AddScoped<SideDishesService>();
+builder.Services.AddScoped<MealPlansService>();
 
 var app = builder.Build();
 
@@ -27,5 +29,6 @@ if (app.Environment.IsDevelopment())
 await app.Services.SeedInfrastructureDataAsync();
 
 app.MapUsersEndpoints();
+app.MapMealsEndpoints();
 
 app.Run();

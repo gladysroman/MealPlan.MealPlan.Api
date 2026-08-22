@@ -13,11 +13,11 @@ internal sealed class SideDishSeedRecord
     [JsonPropertyName("user_id")]
     public string UserId { get; init; } = string.Empty;
 
-    [JsonPropertyName("name")]
-    public string Name { get; init; } = string.Empty;
+    [JsonPropertyName("side_dish_name")]
+    public string SideDishName { get; init; } = string.Empty;
 
-    [JsonPropertyName("description")]
-    public string Description { get; init; } = string.Empty;
+    [JsonPropertyName("side_dish_description")]
+    public string SideDishDescription { get; init; } = string.Empty;
 
     [JsonPropertyName("cooking_recipe")]
     public string CookingRecipe { get; init; } = string.Empty;
@@ -37,8 +37,11 @@ internal sealed class SideDishIngredientSeedRecord
     [JsonPropertyName("ingredient_id")]
     public string IngredientId { get; init; } = string.Empty;
 
-    [JsonPropertyName("name")]
-    public string Name { get; init; } = string.Empty;
+    [JsonPropertyName("ingredient_name")]
+    public string IngredientName { get; init; } = string.Empty;
+
+    [JsonPropertyName("allergens")]
+    public List<string> Allergens { get; init; } = [];
 
     [JsonPropertyName("amount")]
     public decimal Amount { get; init; }

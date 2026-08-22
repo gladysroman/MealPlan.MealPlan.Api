@@ -27,7 +27,10 @@ public class MealPlanDbContext(DbContextOptions<MealPlanDbContext> options) : Db
         modelBuilder.Entity<SideDish>(builder =>
         {
             builder.HasKey(s => s.SideDishId);
-            builder.OwnsMany(s => s.Ingredients);
+            builder.OwnsMany(s => s.Ingredients, ingredient =>
+            {
+                ingredient.PrimitiveCollection(i => i.Allergens);
+            });
         });
     }
 }
