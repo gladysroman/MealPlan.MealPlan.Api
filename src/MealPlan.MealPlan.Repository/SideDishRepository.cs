@@ -18,6 +18,11 @@ public class SideDishRepository(MealPlanDbContext dbContext) : ISideDishReposito
             .Where(s => s.MealId == mealId && s.UserId == userId)
             .ToListAsync(cancellationToken);
 
+    public Task<List<SideDish>> GetByUserIdAsync(string userId, CancellationToken cancellationToken) =>
+        dbContext.SideDishes.AsNoTracking()
+            .Where(s => s.UserId == userId)
+            .ToListAsync(cancellationToken);
+
     public async Task<SideDish> AddAsync(SideDish sideDish, CancellationToken cancellationToken)
     {
         dbContext.SideDishes.Add(sideDish);
