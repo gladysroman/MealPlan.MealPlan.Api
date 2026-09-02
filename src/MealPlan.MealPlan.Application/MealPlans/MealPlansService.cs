@@ -20,4 +20,17 @@ public class MealPlansService(IMealRepository mealRepository, ISideDishRepositor
 
         return MealPlanResponse.From(meal, sideDishes);
     }
+
+    // Returns every meal page for the user, each composed with its own side dishes.
+    // Side dishes are fetched once for the whole user and grouped by meal to avoid one query per meal.
+    public async Task<List<MealPlanResponse>> GetAllMealPlansAsync(string userId, CancellationToken cancellationToken)
+    {
+        var meals = await mealRepository.GetByUserIdAsync(userId, cancellationToken);
+        var sideDishes = await sideDishRepository.GetByUserIdAsync(userId, cancellationToken);
+        var sideDishesByMealId = sideDishes.ToLookup(sideDish => sideDish.MealId);
+
+        return meals
+            .Select(meal => MealPlanResponse.From(meal, sideDishesByMealId[meal.MealId].ToList()))
+            .ToList();
+    }
 }

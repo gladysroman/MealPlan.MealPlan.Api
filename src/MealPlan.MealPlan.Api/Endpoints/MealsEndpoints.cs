@@ -13,5 +13,13 @@ public static class MealsEndpoints
                 var mealPlan = await service.GetMealPlanAsync(userId, mealId, cancellationToken);
                 return mealPlan is null ? Results.NoContent() : Results.Ok(mealPlan);
             });
+
+        // GetAllMealPlans — every meal page belonging to the user.
+        app.MapGet("/users/{userId}/meals",
+            async (string userId, MealPlansService service, CancellationToken cancellationToken) =>
+            {
+                var mealPlans = await service.GetAllMealPlansAsync(userId, cancellationToken);
+                return Results.Ok(mealPlans);
+            });
     }
 }
