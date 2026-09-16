@@ -13,18 +13,16 @@ public class UserRepository(MealPlanDbContext dbContext) : IUserRepository
     public Task<User?> GetByIdAsync(string id, CancellationToken cancellationToken) =>
         dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.UserId == id, cancellationToken);
 
-    public async Task<User> AddAsync(User user, CancellationToken cancellationToken)
+    public Task<User> AddAsync(User user, CancellationToken cancellationToken)
     {
         dbContext.Users.Add(user);
-        await dbContext.SaveChangesAsync(cancellationToken);
-        return user;
+        return Task.FromResult(user);
     }
 
-    public async Task<User> UpdateAsync(User user, CancellationToken cancellationToken)
+    public Task<User> UpdateAsync(User user, CancellationToken cancellationToken)
     {
         dbContext.Users.Update(user);
-        await dbContext.SaveChangesAsync(cancellationToken);
-        return user;
+        return Task.FromResult(user);
     }
 
     public async Task<bool> DeleteAsync(string id, CancellationToken cancellationToken)
@@ -36,7 +34,6 @@ public class UserRepository(MealPlanDbContext dbContext) : IUserRepository
         }
 
         dbContext.Users.Remove(user);
-        await dbContext.SaveChangesAsync(cancellationToken);
         return true;
     }
 }

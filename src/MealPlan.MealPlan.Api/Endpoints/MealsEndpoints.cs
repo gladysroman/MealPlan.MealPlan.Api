@@ -1,4 +1,6 @@
 using MealPlan.MealPlan.Application.MealPlans;
+using MealPlan.MealPlan.Application.Meals;
+using MealPlan.MealPlan.Domain.Entities;
 
 namespace MealPlan.MealPlan.Api.Endpoints;
 
@@ -21,5 +23,28 @@ public static class MealsEndpoints
                 var mealPlans = await service.GetAllMealPlansAsync(userId, cancellationToken);
                 return Results.Ok(mealPlans);
             });
+
+        // AddMeal — creates a meal from side dishes that already exist (typically just created via POST /sideDishes).
+        app.MapPost("/meals",
+            async (CreateMealRequest request, MealsService service, CancellationToken cancellationToken) =>
+            {
+                var result = await service.AddMealAsync(request, cancellationToken);
+                if (result.Meal is null)
+                {
+                    return Results.BadRequest(new { missing_side_dish_ids = result.MissingSideDishIds });
+                }
+
+                return Results.Created($"/users/{result.Meal.UserId}/meals/{result.Meal.MealId}", ToDto(result.Meal));
+            });
     }
+
+    private static MealDto ToDto(Meal meal) => new(
+        meal.MealId,
+        meal.UserId,
+        meal.MealName,
+        meal.MealDescription,
+        meal.SideDishIds,
+        meal.LikedAmount,
+        meal.CreatedDate,
+        meal.UpdatedDate);
 }

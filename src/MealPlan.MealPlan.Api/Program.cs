@@ -30,5 +30,6 @@ await app.Services.SeedInfrastructureDataAsync();
 
 app.MapUsersEndpoints();
 app.MapMealsEndpoints();
+app.MapSideDishesEndpoints();
 
 app.Run();

@@ -1,8 +1,9 @@
+using MealPlan.MealPlan.Application.Common;
 using MealPlan.MealPlan.Domain.Entities;
 
 namespace MealPlan.MealPlan.Application.Users;
 
-public class UsersService(IUserRepository repository)
+public class UsersService(IUserRepository repository, IUnitOfWork unitOfWork)
 {
     public Task<List<User>> GetUsersAsync(CancellationToken cancellationToken) =>
         repository.GetAllAsync(cancellationToken);
@@ -25,7 +26,10 @@ public class UsersService(IUserRepository repository)
             UpdatedDate = date
         };
 
-        return await repository.AddAsync(user, cancellationToken);
+        var created = await repository.AddAsync(user, cancellationToken);
+        await unitOfWork.CommitAsync(cancellationToken);
+
+        return created;
     }
 
     public async Task<User?> UpdateUserAsync(string id, UpdateUserRequest request, CancellationToken cancellationToken)
@@ -43,9 +47,20 @@ public class UsersService(IUserRepository repository)
         existing.MealIds = request.MealIds;
         existing.UpdatedDate = DateTime.UtcNow;
 
-        return await repository.UpdateAsync(existing, cancellationToken);
+        var updated = await repository.UpdateAsync(existing, cancellationToken);
+        await unitOfWork.CommitAsync(cancellationToken);
+
+        return updated;
     }
 
-    public Task<bool> DeleteUserAsync(string id, CancellationToken cancellationToken) =>
-        repository.DeleteAsync(id, cancellationToken);
+    public async Task<bool> DeleteUserAsync(string id, CancellationToken cancellationToken)
+    {
+        var deleted = await repository.DeleteAsync(id, cancellationToken);
+        if (deleted)
+        {
+            await unitOfWork.CommitAsync(cancellationToken);
+        }
+
+        return deleted;
+    }
 }

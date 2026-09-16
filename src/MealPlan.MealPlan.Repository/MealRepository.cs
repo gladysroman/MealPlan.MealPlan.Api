@@ -22,18 +22,16 @@ public class MealRepository(MealPlanDbContext dbContext) : IMealRepository
             .Where(m => m.UserId == userId)
             .ToListAsync(cancellationToken);
 
-    public async Task<Meal> AddAsync(Meal meal, CancellationToken cancellationToken)
+    public Task<Meal> AddAsync(Meal meal, CancellationToken cancellationToken)
     {
         dbContext.Meals.Add(meal);
-        await dbContext.SaveChangesAsync(cancellationToken);
-        return meal;
+        return Task.FromResult(meal);
     }
 
-    public async Task<Meal> UpdateAsync(Meal meal, CancellationToken cancellationToken)
+    public Task<Meal> UpdateAsync(Meal meal, CancellationToken cancellationToken)
     {
         dbContext.Meals.Update(meal);
-        await dbContext.SaveChangesAsync(cancellationToken);
-        return meal;
+        return Task.FromResult(meal);
     }
 
     public async Task<bool> DeleteAsync(string id, CancellationToken cancellationToken)
@@ -45,7 +43,6 @@ public class MealRepository(MealPlanDbContext dbContext) : IMealRepository
         }
 
         dbContext.Meals.Remove(meal);
-        await dbContext.SaveChangesAsync(cancellationToken);
         return true;
     }
 }
