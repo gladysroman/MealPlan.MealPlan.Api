@@ -1,4 +1,5 @@
 using System.Text.Json.Serialization;
+using MealPlan.MealPlan.Domain.Entities;
 
 namespace MealPlan.MealPlan.Application.SideDishes;
 
@@ -25,7 +26,7 @@ public record SideDishIngredientDto(
     [property: JsonPropertyName("fat_g")] decimal FatG);
 
 public record CreateSideDishRequest(
-    [property: JsonPropertyName("meal_id")] string MealId,
+    [property: JsonPropertyName("meal_id")] string? MealId,
     [property: JsonPropertyName("user_id")] string UserId,
     [property: JsonPropertyName("side_dish_name")] string SideDishName,
     [property: JsonPropertyName("side_dish_description")] string SideDishDescription,
@@ -37,3 +38,5 @@ public record UpdateSideDishRequest(
     [property: JsonPropertyName("side_dish_description")] string SideDishDescription,
     [property: JsonPropertyName("cooking_recipe")] string CookingRecipe,
     [property: JsonPropertyName("ingredients")] List<SideDishIngredientDto> Ingredients);
+
+public record TryAssignSideDishesResult(IReadOnlyList<string> MissingSideDishIds, IReadOnlyList<SideDish> SideDishes);

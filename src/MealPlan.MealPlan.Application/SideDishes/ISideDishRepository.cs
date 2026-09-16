@@ -11,4 +11,6 @@ public interface ISideDishRepository
     Task<SideDish> AddAsync(SideDish sideDish, CancellationToken cancellationToken);
     Task<SideDish> UpdateAsync(SideDish sideDish, CancellationToken cancellationToken);
     Task<bool> DeleteAsync(string id, CancellationToken cancellationToken);
+
+    Task<List<SideDish>> GetExistingSideDishesByIdsAsync(List<string> ids, CancellationToken cancellationToken);
 }

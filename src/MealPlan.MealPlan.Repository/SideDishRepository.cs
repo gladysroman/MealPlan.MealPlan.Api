@@ -23,18 +23,24 @@ public class SideDishRepository(MealPlanDbContext dbContext) : ISideDishReposito
             .Where(s => s.UserId == userId)
             .ToListAsync(cancellationToken);
 
-    public async Task<SideDish> AddAsync(SideDish sideDish, CancellationToken cancellationToken)
+    public Task<List<SideDish>> GetExistingSideDishesByIdsAsync(List<string> ids, CancellationToken cancellationToken) =>   
+        dbContext.SideDishes
+            .Where(s => ids.Contains(s.SideDishId))
+            .ToListAsync(cancellationToken);
+
+    public Task<SideDish> AddAsync(SideDish sideDish, CancellationToken cancellationToken)
     {
         dbContext.SideDishes.Add(sideDish);
-        await dbContext.SaveChangesAsync(cancellationToken);
-        return sideDish;
+        return Task.FromResult(sideDish);
     }
 
     public async Task<SideDish> UpdateAsync(SideDish sideDish, CancellationToken cancellationToken)
     {
-        dbContext.SideDishes.Update(sideDish);
-        await dbContext.SaveChangesAsync(cancellationToken);
-        return sideDish;
+        var existing = await dbContext.SideDishes.FirstAsync(s => s.SideDishId == sideDish.SideDishId, cancellationToken);
+
+        dbContext.Entry(existing).CurrentValues.SetValues(sideDish);
+        existing.Ingredients = sideDish.Ingredients;
+        return existing;
     }
 
     public async Task<bool> DeleteAsync(string id, CancellationToken cancellationToken)
@@ -46,7 +52,6 @@ public class SideDishRepository(MealPlanDbContext dbContext) : ISideDishReposito
         }
 
         dbContext.SideDishes.Remove(sideDish);
-        await dbContext.SaveChangesAsync(cancellationToken);
         return true;
     }
 }

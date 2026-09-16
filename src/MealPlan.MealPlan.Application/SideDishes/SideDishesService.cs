@@ -1,8 +1,9 @@
+using MealPlan.MealPlan.Application.Common;
 using MealPlan.MealPlan.Domain.Entities;
 
 namespace MealPlan.MealPlan.Application.SideDishes;
 
-public class SideDishesService(ISideDishRepository repository)
+public class SideDishesService(ISideDishRepository repository, IUnitOfWork unitOfWork)
 {
     public Task<List<SideDish>> GetSideDishesAsync(CancellationToken cancellationToken) =>
         repository.GetAllAsync(cancellationToken);
@@ -16,7 +17,7 @@ public class SideDishesService(ISideDishRepository repository)
         var sideDish = new SideDish
         {
             SideDishId = $"sd_{Guid.NewGuid():N}",
-            MealId = request.MealId,
+            MealId = request.MealId ?? string.Empty,
             UserId = request.UserId,
             SideDishName = request.SideDishName,
             SideDishDescription = request.SideDishDescription,
@@ -26,7 +27,10 @@ public class SideDishesService(ISideDishRepository repository)
             UpdatedDate = date
         };
 
-        return await repository.AddAsync(sideDish, cancellationToken);
+        var created = await repository.AddAsync(sideDish, cancellationToken);
+        await unitOfWork.CommitAsync(cancellationToken);
+
+        return created;
     }
 
     public async Task<SideDish?> UpdateSideDishAsync(string id, UpdateSideDishRequest request, CancellationToken cancellationToken)
@@ -43,11 +47,47 @@ public class SideDishesService(ISideDishRepository repository)
         existing.Ingredients = request.Ingredients.Select(ToEntity).ToList();
         existing.UpdatedDate = DateTime.UtcNow;
 
-        return await repository.UpdateAsync(existing, cancellationToken);
+        var updated = await repository.UpdateAsync(existing, cancellationToken);
+        await unitOfWork.CommitAsync(cancellationToken);
+
+        return updated;
     }
 
-    public Task<bool> DeleteSideDishAsync(string id, CancellationToken cancellationToken) =>
-        repository.DeleteAsync(id, cancellationToken);
+    public async Task<bool> DeleteSideDishAsync(string id, CancellationToken cancellationToken)
+    {
+        var deleted = await repository.DeleteAsync(id, cancellationToken);
+        if (deleted)
+        {
+            await unitOfWork.CommitAsync(cancellationToken);
+        }
+
+        return deleted;
+    }
+
+    // Checks that every requested side dish exists and, if so, stamps each with the meal's id
+    // in the same pass (the entities came back tracked, so mutating them here is the "stamp").
+    // Does NOT commit — this is meant to be staged as part of a larger unit of work (see
+    // MealsService.AddMealAsync), alongside the meal insert itself.
+    public async Task<TryAssignSideDishesResult> TryAssignSideDishesToMealAsync(List<string> sideDishIds, string mealId, CancellationToken cancellationToken)
+    {
+        var existingSideDishes = await repository.GetExistingSideDishesByIdsAsync(sideDishIds, cancellationToken);
+        var existingIds = existingSideDishes.Select(s => s.SideDishId).ToHashSet();
+        var missingIds = sideDishIds.Where(id => !existingIds.Contains(id)).ToList();
+
+        if (missingIds.Count > 0)
+        {
+            return new TryAssignSideDishesResult(missingIds, []);
+        }
+
+        var date = DateTime.UtcNow;
+        foreach (var sideDish in existingSideDishes)
+        {
+            sideDish.MealId = mealId;
+            sideDish.UpdatedDate = date;
+        }
+
+        return new TryAssignSideDishesResult([], existingSideDishes);
+    }
 
     private static SideDishIngredient ToEntity(SideDishIngredientDto dto) => new()
     {
