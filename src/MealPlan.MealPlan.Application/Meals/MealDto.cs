@@ -20,6 +20,8 @@ public record CreateMealRequest(
     [property: JsonPropertyName("side_dish_ids")] List<string> SideDishIds);
 
 public record UpdateMealRequest(
+    [property: JsonPropertyName("meal_name")] string? MealName,
+    [property: JsonPropertyName("meal_description")] string? MealDescription,
     [property: JsonPropertyName("side_dish_ids")] List<string> SideDishIds);
 
 public record CreateMealResult(Meal? Meal, IReadOnlyList<string> MissingSideDishIds);

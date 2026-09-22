@@ -15,6 +15,22 @@ public static class SideDishesEndpoints
                 var sideDish = await service.AddSideDishAsync(request, cancellationToken);
                 return Results.Created($"/sideDishes/{sideDish.SideDishId}", ToDto(sideDish));
             });
+
+        // UpdateSideDish — full replace of a side dish's editable fields.
+        app.MapPut("/sideDishes/{id}",
+            async (string id, UpdateSideDishRequest request, SideDishesService service, CancellationToken cancellationToken) =>
+            {
+                var sideDish = await service.UpdateSideDishAsync(id, request, cancellationToken);
+                return sideDish is null ? Results.NotFound() : Results.Ok(ToDto(sideDish));
+            });
+
+        // DeleteSideDish
+        app.MapDelete("/sideDishes/{id}",
+            async (string id, SideDishesService service, CancellationToken cancellationToken) =>
+            {
+                var deleted = await service.DeleteSideDishAsync(id, cancellationToken);
+                return deleted ? Results.NoContent() : Results.NotFound();
+            });
     }
 
     private static SideDishDto ToDto(SideDish sideDish) => new(
