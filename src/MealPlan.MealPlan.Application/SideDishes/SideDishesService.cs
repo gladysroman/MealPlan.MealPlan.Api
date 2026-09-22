@@ -82,11 +82,25 @@ public class SideDishesService(ISideDishRepository repository, IUnitOfWork unitO
         var date = DateTime.UtcNow;
         foreach (var sideDish in existingSideDishes)
         {
-            sideDish.MealId = mealId;
-            sideDish.UpdatedDate = date;
+            if (sideDish.MealId != mealId)
+            {
+                sideDish.MealId = mealId;
+                sideDish.UpdatedDate = date;
+            }
         }
 
         return new TryAssignSideDishesResult([], existingSideDishes);
+    }
+
+    // Stages a delete for each id (no commit) — a building block for callers that need to
+    // delete several side dishes as part of a larger unit of work (e.g. MealsService cascading
+    // a meal delete, or removing side dishes dropped from a meal update).
+    public async Task DeleteSideDishesAsync(IReadOnlyList<string> sideDishIds, CancellationToken cancellationToken)
+    {
+        foreach (var sideDishId in sideDishIds)
+        {
+            await repository.DeleteAsync(sideDishId, cancellationToken);
+        }
     }
 
     private static SideDishIngredient ToEntity(SideDishIngredientDto dto) => new()

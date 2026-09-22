@@ -36,6 +36,34 @@ public static class MealsEndpoints
 
                 return Results.Created($"/users/{result.Meal.UserId}/meals/{result.Meal.MealId}", ToDto(result.Meal));
             });
+
+        // UpdateMeal — full replace of name/description/side dishes. Side dishes dropped from
+        // the list are deleted (no-orphan policy); newly-referenced ids are validated the same
+        // way AddMeal validates them.
+        app.MapPut("/meals/{id}",
+            async (string id, UpdateMealRequest request, MealsService service, CancellationToken cancellationToken) =>
+            {
+                var result = await service.UpdateMealAsync(id, request, cancellationToken);
+                if (result is null)
+                {
+                    return Results.NotFound();
+                }
+
+                if (result.Meal is null)
+                {
+                    return Results.BadRequest(new { missing_side_dish_ids = result.MissingSideDishIds });
+                }
+
+                return Results.Ok(ToDto(result.Meal));
+            });
+
+        // DeleteMeal — cascades to delete all of the meal's side dishes (no-orphan policy).
+        app.MapDelete("/meals/{id}",
+            async (string id, MealsService service, CancellationToken cancellationToken) =>
+            {
+                var deleted = await service.DeleteMealAsync(id, cancellationToken);
+                return deleted ? Results.NoContent() : Results.NotFound();
+            });
     }
 
     private static MealDto ToDto(Meal meal) => new(

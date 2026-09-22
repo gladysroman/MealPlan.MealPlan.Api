@@ -106,7 +106,9 @@ public class MealsService(
             ? items.Count == 1 ? items[0] : string.Empty
             : string.Join(", ", items.Take(items.Count - 1)) + " & " + items[^1];
 
-    public async Task<Meal?> UpdateMealAsync(string id, UpdateMealRequest request, CancellationToken cancellationToken)
+    // Returns null when the meal doesn't exist (404). Otherwise a CreateMealResult: Meal null
+    // means a newly-referenced side dish id doesn't exist (400); Meal set means success (200).
+    public async Task<CreateMealResult?> UpdateMealAsync(string id, UpdateMealRequest request, CancellationToken cancellationToken)
     {
         var existing = await repository.GetByIdAsync(id, cancellationToken);
         if (existing is null)
@@ -114,23 +116,47 @@ public class MealsService(
             return null;
         }
 
+        // No-orphan policy: side dishes dropped from this meal get deleted, not just detached.
+        var removedSideDishIds = existing.SideDishIds.Except(request.SideDishIds).ToList();
+        if (removedSideDishIds.Count > 0)
+        {
+            await sideDishesService.DeleteSideDishesAsync(removedSideDishIds, cancellationToken);
+        }
+
+        var assignResult = await TryAssignSideDishesWithRetryAsync(request.SideDishIds, id, cancellationToken);
+        if (assignResult.MissingSideDishIds.Count > 0)
+        {
+            return new CreateMealResult(null, assignResult.MissingSideDishIds);
+        }
+
+        existing.MealName = request.MealName ?? GenerateMealName(assignResult.SideDishes);
+        existing.MealDescription = request.MealDescription ?? GenerateMealDescription(assignResult.SideDishes);
         existing.SideDishIds = request.SideDishIds;
         existing.UpdatedDate = DateTime.UtcNow;
 
         var updated = await repository.UpdateAsync(existing, cancellationToken);
         await unitOfWork.CommitAsync(cancellationToken);
 
-        return updated;
+        return new CreateMealResult(updated, []);
     }
 
     public async Task<bool> DeleteMealAsync(string id, CancellationToken cancellationToken)
     {
-        var deleted = await repository.DeleteAsync(id, cancellationToken);
-        if (deleted)
+        var existing = await repository.GetByIdAsync(id, cancellationToken);
+        if (existing is null)
         {
-            await unitOfWork.CommitAsync(cancellationToken);
+            return false;
         }
 
-        return deleted;
+        // No-orphan policy: deleting a meal cascades to delete all of its side dishes.
+        if (existing.SideDishIds.Count > 0)
+        {
+            await sideDishesService.DeleteSideDishesAsync(existing.SideDishIds, cancellationToken);
+        }
+
+        await repository.DeleteAsync(id, cancellationToken);
+        await unitOfWork.CommitAsync(cancellationToken);
+
+        return true;
     }
 }
