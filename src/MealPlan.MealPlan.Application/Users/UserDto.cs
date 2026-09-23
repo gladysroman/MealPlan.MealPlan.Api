@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 
 namespace MealPlan.MealPlan.Application.Users;
@@ -19,13 +20,13 @@ public record UserProfileDto(
     [property: JsonPropertyName("pref_units")] string PrefUnits);
 
 public record CreateUserRequest(
-    [property: JsonPropertyName("name")] string Name,
-    [property: JsonPropertyName("email")] string Email,
+    [property: JsonPropertyName("name"), MaxLength(100)] string Name,
+    [property: JsonPropertyName("email"), MaxLength(254)] string Email,
     [property: JsonPropertyName("pref_units")] string PrefUnits);
 
 public record UpdateUserRequest(
-    [property: JsonPropertyName("name")] string Name,
-    [property: JsonPropertyName("email")] string Email,
+    [property: JsonPropertyName("name"), MaxLength(100)] string Name,
+    [property: JsonPropertyName("email"), MaxLength(254)] string Email,
     [property: JsonPropertyName("pref_units")] string PrefUnits,
     [property: JsonPropertyName("friend_ids")] List<string> FriendIds,
     [property: JsonPropertyName("meal_ids")] List<string> MealIds);

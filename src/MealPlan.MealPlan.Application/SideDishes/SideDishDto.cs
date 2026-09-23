@@ -1,4 +1,6 @@
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
+using MealPlan.MealPlan.Application.Common;
 using MealPlan.MealPlan.Domain.Entities;
 
 namespace MealPlan.MealPlan.Application.SideDishes;
@@ -16,10 +18,10 @@ public record SideDishDto(
 
 public record SideDishIngredientDto(
     [property: JsonPropertyName("ingredient_id")] string IngredientId,
-    [property: JsonPropertyName("ingredient_name")] string IngredientName,
-    [property: JsonPropertyName("allergens")] IReadOnlyList<string> Allergens,
+    [property: JsonPropertyName("ingredient_name"), MaxLength(100)] string IngredientName,
+    [property: JsonPropertyName("allergens"), MaxElementLength(50)] IReadOnlyList<string> Allergens,
     [property: JsonPropertyName("amount")] decimal Amount,
-    [property: JsonPropertyName("unit")] string Unit,
+    [property: JsonPropertyName("unit"), MaxLength(20)] string Unit,
     [property: JsonPropertyName("calories")] int Calories,
     [property: JsonPropertyName("carbs_g")] decimal CarbsG,
     [property: JsonPropertyName("protein_g")] decimal ProteinG,
@@ -28,15 +30,15 @@ public record SideDishIngredientDto(
 public record CreateSideDishRequest(
     [property: JsonPropertyName("meal_id")] string? MealId,
     [property: JsonPropertyName("user_id")] string UserId,
-    [property: JsonPropertyName("side_dish_name")] string SideDishName,
-    [property: JsonPropertyName("side_dish_description")] string SideDishDescription,
-    [property: JsonPropertyName("cooking_recipe")] string CookingRecipe,
+    [property: JsonPropertyName("side_dish_name"), MaxLength(100)] string SideDishName,
+    [property: JsonPropertyName("side_dish_description"), MaxLength(1000)] string SideDishDescription,
+    [property: JsonPropertyName("cooking_recipe"), MaxLength(4000)] string CookingRecipe,
     [property: JsonPropertyName("ingredients")] List<SideDishIngredientDto> Ingredients);
 
 public record UpdateSideDishRequest(
-    [property: JsonPropertyName("side_dish_name")] string SideDishName,
-    [property: JsonPropertyName("side_dish_description")] string SideDishDescription,
-    [property: JsonPropertyName("cooking_recipe")] string CookingRecipe,
+    [property: JsonPropertyName("side_dish_name"), MaxLength(100)] string SideDishName,
+    [property: JsonPropertyName("side_dish_description"), MaxLength(1000)] string SideDishDescription,
+    [property: JsonPropertyName("cooking_recipe"), MaxLength(4000)] string CookingRecipe,
     [property: JsonPropertyName("ingredients")] List<SideDishIngredientDto> Ingredients);
 
 public record TryAssignSideDishesResult(IReadOnlyList<string> MissingSideDishIds, IReadOnlyList<SideDish> SideDishes);
