@@ -1,3 +1,4 @@
+using System.Text;
 using MealPlan.MealPlan.Application.Common;
 using MealPlan.MealPlan.Application.SideDishes;
 using MealPlan.MealPlan.Domain.Entities;
@@ -13,6 +14,12 @@ public class MealsService(
 {
     private const int MaxAssignSideDishesAttempts = 4;
     private static readonly TimeSpan AssignSideDishesRetryDelay = TimeSpan.FromMilliseconds(250);
+
+    // Must stay in sync with the [MaxLength] on MealName/MealDescription in MealDto.cs --
+    // generated values are truncated to these same limits so they never violate the very
+    // validation rule that bounds a user-supplied override.
+    private const int MealNameMaxLength = 150;
+    private const int MealDescriptionMaxLength = 1000;
 
     public Task<List<Meal>> GetMealsAsync(CancellationToken cancellationToken) =>
         repository.GetAllAsync(cancellationToken);
@@ -80,12 +87,63 @@ public class MealsService(
         return result;
     }
 
-    // "A, B & C" -- comma between all but the last pair, "&" before the last.
-    private static string GenerateMealName(IReadOnlyList<SideDish> sideDishes) =>
-        sideDishes.Count == 0 ? "New Meal" : JoinAsEnglishList(sideDishes.Select(s => s.SideDishName).ToList());
+    // "A, B & C" -- comma between all but the last pair, "&" before the last. If the joined
+    // name would exceed MealNameMaxLength, whole side dish names are dropped from the end
+    // (not sliced mid-word) until it fits.
+    private static string GenerateMealName(IReadOnlyList<SideDish> sideDishes)
+    {
+        if (sideDishes.Count == 0)
+        {
+            return "New Meal";
+        }
 
-    private static string GenerateMealDescription(IReadOnlyList<SideDish> sideDishes) =>
-        sideDishes.Count == 0 ? "No side dishes yet." : string.Join(" ", sideDishes.Select(s => AsSentence(s.SideDishDescription)));
+        var names = sideDishes.Select(s => s.SideDishName).ToList();
+        while (names.Count > 1 && JoinAsEnglishList(names).Length > MealNameMaxLength)
+        {
+            names.RemoveAt(names.Count - 1);
+        }
+
+        var joined = JoinAsEnglishList(names);
+        return joined.Length > MealNameMaxLength ? joined[..MealNameMaxLength] : joined;
+    }
+
+    // Joins each side dish's description as its own sentence, including only as many whole
+    // sentences (not partial/mid-sentence slices) as fit within MealDescriptionMaxLength.
+    private static string GenerateMealDescription(IReadOnlyList<SideDish> sideDishes)
+    {
+        if (sideDishes.Count == 0)
+        {
+            return "No side dishes yet.";
+        }
+
+        var builder = new StringBuilder();
+        foreach (var sideDish in sideDishes)
+        {
+            var sentence = AsSentence(sideDish.SideDishDescription);
+            var separatorLength = builder.Length > 0 ? 1 : 0;
+            if (builder.Length + separatorLength + sentence.Length > MealDescriptionMaxLength)
+            {
+                break;
+            }
+
+            if (builder.Length > 0)
+            {
+                builder.Append(' ');
+            }
+
+            builder.Append(sentence);
+        }
+
+        if (builder.Length > 0)
+        {
+            return builder.ToString();
+        }
+
+        // Even the first side dish's normalized description alone exceeds the limit (rare --
+        // only possible because AsSentence can add a trailing period) -- hard-truncate as a
+        // last resort so the result never violates MealDescriptionMaxLength.
+        return AsSentence(sideDishes[0].SideDishDescription)[..MealDescriptionMaxLength];
+    }
 
     // Capitalizes the first letter and ensures terminal punctuation, so descriptions read as
     // distinct sentences when joined regardless of how the caller typed them in.
