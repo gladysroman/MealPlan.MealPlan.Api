@@ -1,3 +1,4 @@
+using MealPlan.MealPlan.Api.Auth;
 using MealPlan.MealPlan.Application.Users;
 using MealPlan.MealPlan.Domain.Entities;
 
@@ -14,7 +15,8 @@ public static class UsersEndpoints
         {
             var user = await service.GetUserByIdAsync(id, cancellationToken);
             return user is null ? Results.NoContent() : Results.Ok(ToProfileDto(user));
-        });
+        })
+        .RequireSelf("id");
     }
 
     private static UserProfileDto ToProfileDto(User user) => new(

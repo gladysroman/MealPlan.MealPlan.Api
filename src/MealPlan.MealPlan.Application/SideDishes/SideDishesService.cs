@@ -11,14 +11,14 @@ public class SideDishesService(ISideDishRepository repository, IUnitOfWork unitO
     public Task<SideDish?> GetSideDishByIdAsync(string id, CancellationToken cancellationToken) =>
         repository.GetByIdAsync(id, cancellationToken);
 
-    public async Task<SideDish> AddSideDishAsync(CreateSideDishRequest request, CancellationToken cancellationToken)
+    public async Task<SideDish> AddSideDishAsync(CreateSideDishRequest request, string userId, CancellationToken cancellationToken)
     {
         var date = DateTime.UtcNow;
         var sideDish = new SideDish
         {
             SideDishId = $"sd_{Guid.NewGuid():N}",
             MealId = request.MealId ?? string.Empty,
-            UserId = request.UserId,
+            UserId = userId,
             SideDishName = request.SideDishName,
             SideDishDescription = request.SideDishDescription,
             CookingRecipe = request.CookingRecipe,
@@ -33,10 +33,12 @@ public class SideDishesService(ISideDishRepository repository, IUnitOfWork unitO
         return created;
     }
 
-    public async Task<SideDish?> UpdateSideDishAsync(string id, UpdateSideDishRequest request, CancellationToken cancellationToken)
+    // A side dish that belongs to someone else is treated as not found (null), so the API
+    // doesn't reveal whether another user's id exists.
+    public async Task<SideDish?> UpdateSideDishAsync(string id, string userId, UpdateSideDishRequest request, CancellationToken cancellationToken)
     {
         var existing = await repository.GetByIdAsync(id, cancellationToken);
-        if (existing is null)
+        if (existing is null || existing.UserId != userId)
         {
             return null;
         }
@@ -53,8 +55,15 @@ public class SideDishesService(ISideDishRepository repository, IUnitOfWork unitO
         return updated;
     }
 
-    public async Task<bool> DeleteSideDishAsync(string id, CancellationToken cancellationToken)
+    // Someone else's side dish is treated as not found (false), as in UpdateSideDishAsync.
+    public async Task<bool> DeleteSideDishAsync(string id, string userId, CancellationToken cancellationToken)
     {
+        var existing = await repository.GetByIdAsync(id, cancellationToken);
+        if (existing is null || existing.UserId != userId)
+        {
+            return false;
+        }
+
         var deleted = await repository.DeleteAsync(id, cancellationToken);
         if (deleted)
         {
@@ -68,9 +77,11 @@ public class SideDishesService(ISideDishRepository repository, IUnitOfWork unitO
     // in the same pass (the entities came back tracked, so mutating them here is the "stamp").
     // Does NOT commit — this is meant to be staged as part of a larger unit of work (see
     // MealsService.AddMealAsync), alongside the meal insert itself.
-    public async Task<TryAssignSideDishesResult> TryAssignSideDishesToMealAsync(List<string> sideDishIds, string mealId, CancellationToken cancellationToken)
+    // Only the user's own side dishes count as existing: an id that belongs to someone else
+    // is reported as missing, so a meal can never pull in another user's side dishes.
+    public async Task<TryAssignSideDishesResult> TryAssignSideDishesToMealAsync(List<string> sideDishIds, string mealId, string userId, CancellationToken cancellationToken)
     {
-        var existingSideDishes = await repository.GetExistingSideDishesByIdsAsync(sideDishIds, cancellationToken);
+        var existingSideDishes = await repository.GetExistingSideDishesByIdsAsync(sideDishIds, userId, cancellationToken);
         var existingIds = existingSideDishes.Select(s => s.SideDishId).ToHashSet();
         var missingIds = sideDishIds.Where(id => !existingIds.Contains(id)).ToList();
 

@@ -1,5 +1,6 @@
 using System.Text.Json;
 using MealPlan.MealPlan.Domain.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace MealPlan.MealPlan.Infrastructure.Persistence.SeedData;
@@ -9,14 +10,22 @@ internal static class MealPlanSeeder
     private static readonly string SeedDirectory =
         Path.Combine(AppContext.BaseDirectory, "Persistence", "SeedData");
 
-    public static async Task SeedAsync(MealPlanDbContext dbContext, CancellationToken cancellationToken)
+    public static async Task SeedAsync(
+        MealPlanDbContext dbContext,
+        IPasswordHasher<User> passwordHasher,
+        string? seedPassword,
+        CancellationToken cancellationToken)
     {
-        await SeedUsersAsync(dbContext, cancellationToken);
+        await SeedUsersAsync(dbContext, passwordHasher, seedPassword, cancellationToken);
         await SeedMealsAsync(dbContext, cancellationToken);
         await SeedSideDishesAsync(dbContext, cancellationToken);
     }
 
-    private static async Task SeedUsersAsync(MealPlanDbContext dbContext, CancellationToken cancellationToken)
+    private static async Task SeedUsersAsync(
+        MealPlanDbContext dbContext,
+        IPasswordHasher<User> passwordHasher,
+        string? seedPassword,
+        CancellationToken cancellationToken)
     {
         if (await dbContext.Users.AnyAsync(cancellationToken))
         {
@@ -25,16 +34,27 @@ internal static class MealPlanSeeder
 
         var records = await ReadSeedFileAsync<UserSeedRecord>("users.json", cancellationToken);
 
-        var users = records.Select(record => new User
+        var users = records.Select(record =>
         {
-            UserId = record.UserId,
-            Name = record.Name,
-            Email = record.Email,
-            PrefUnits = record.PrefUnits,
-            FriendIds = record.FriendIds,
-            MealIds = record.MealIds,
-            CreatedDate = record.CreatedDate,
-            UpdatedDate = record.UpdatedDate
+            var user = new User
+            {
+                UserId = record.UserId,
+                Name = record.Name,
+                Email = record.Email,
+                PrefUnits = record.PrefUnits,
+                FriendIds = record.FriendIds,
+                MealIds = record.MealIds,
+                CreatedDate = record.CreatedDate,
+                UpdatedDate = record.UpdatedDate
+            };
+
+            // Without a configured seed password the hash stays empty, so seeded users cannot sign in.
+            if (!string.IsNullOrEmpty(seedPassword))
+            {
+                user.PasswordHash = passwordHasher.HashPassword(user, seedPassword);
+            }
+
+            return user;
         });
 
         dbContext.Users.AddRange(users);

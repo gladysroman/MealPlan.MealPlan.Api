@@ -12,5 +12,6 @@ public interface ISideDishRepository
     Task<SideDish> UpdateAsync(SideDish sideDish, CancellationToken cancellationToken);
     Task<bool> DeleteAsync(string id, CancellationToken cancellationToken);
 
-    Task<List<SideDish>> GetExistingSideDishesByIdsAsync(List<string> ids, CancellationToken cancellationToken);
+    // Only side dishes that exist AND belong to the user; anyone else's ids are left out.
+    Task<List<SideDish>> GetExistingSideDishesByIdsAsync(List<string> ids, string userId, CancellationToken cancellationToken);
 }

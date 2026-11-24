@@ -23,9 +23,9 @@ public class SideDishRepository(MealPlanDbContext dbContext) : ISideDishReposito
             .Where(s => s.UserId == userId)
             .ToListAsync(cancellationToken);
 
-    public Task<List<SideDish>> GetExistingSideDishesByIdsAsync(List<string> ids, CancellationToken cancellationToken) =>   
+    public Task<List<SideDish>> GetExistingSideDishesByIdsAsync(List<string> ids, string userId, CancellationToken cancellationToken) =>
         dbContext.SideDishes
-            .Where(s => ids.Contains(s.SideDishId))
+            .Where(s => s.UserId == userId && ids.Contains(s.SideDishId))
             .ToListAsync(cancellationToken);
 
     public Task<SideDish> AddAsync(SideDish sideDish, CancellationToken cancellationToken)

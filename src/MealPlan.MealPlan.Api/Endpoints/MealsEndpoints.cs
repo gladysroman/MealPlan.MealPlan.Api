@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using MealPlan.MealPlan.Api.Auth;
 using MealPlan.MealPlan.Application.MealPlans;
 using MealPlan.MealPlan.Application.Meals;
 using MealPlan.MealPlan.Domain.Entities;
@@ -14,7 +16,8 @@ public static class MealsEndpoints
             {
                 var mealPlan = await service.GetMealPlanAsync(userId, mealId, cancellationToken);
                 return mealPlan is null ? Results.NoContent() : Results.Ok(mealPlan);
-            });
+            })
+            .RequireSelf();
 
         // GetAllMealPlans — every meal page belonging to the user.
         app.MapGet("/users/{userId}/meals",
@@ -22,16 +25,18 @@ public static class MealsEndpoints
             {
                 var mealPlans = await service.GetAllMealPlansAsync(userId, cancellationToken);
                 return Results.Ok(mealPlans);
-            });
+            })
+            .RequireSelf();
 
-        // AddMeal — creates a meal from side dishes that already exist (typically just created via POST /sideDishes).
+        // AddMeal — creates a meal for the signed-in user from side dishes that already exist and
+        // are theirs (typically just created via POST /sideDishes).
         app.MapPost("/meals",
-            async (CreateMealRequest request, MealsService service, CancellationToken cancellationToken) =>
+            async (CreateMealRequest request, ClaimsPrincipal user, MealsService service, CancellationToken cancellationToken) =>
             {
-                var result = await service.AddMealAsync(request, cancellationToken);
+                var result = await service.AddMealAsync(request, user.GetUserId(), cancellationToken);
                 if (result.Meal is null)
                 {
-                    return Results.BadRequest(new { missing_side_dish_ids = result.MissingSideDishIds });
+                    return SideDishProblem(result);
                 }
 
                 return Results.Created($"/users/{result.Meal.UserId}/meals/{result.Meal.MealId}", ToDto(result.Meal));
@@ -41,9 +46,9 @@ public static class MealsEndpoints
         // the list are deleted (no-orphan policy); newly-referenced ids are validated the same
         // way AddMeal validates them.
         app.MapPut("/meals/{id}",
-            async (string id, UpdateMealRequest request, MealsService service, CancellationToken cancellationToken) =>
+            async (string id, UpdateMealRequest request, ClaimsPrincipal user, MealsService service, CancellationToken cancellationToken) =>
             {
-                var result = await service.UpdateMealAsync(id, request, cancellationToken);
+                var result = await service.UpdateMealAsync(id, user.GetUserId(), request, cancellationToken);
                 if (result is null)
                 {
                     return Results.NotFound();
@@ -51,7 +56,7 @@ public static class MealsEndpoints
 
                 if (result.Meal is null)
                 {
-                    return Results.BadRequest(new { missing_side_dish_ids = result.MissingSideDishIds });
+                    return SideDishProblem(result);
                 }
 
                 return Results.Ok(ToDto(result.Meal));
@@ -59,12 +64,18 @@ public static class MealsEndpoints
 
         // DeleteMeal — cascades to delete all of the meal's side dishes (no-orphan policy).
         app.MapDelete("/meals/{id}",
-            async (string id, MealsService service, CancellationToken cancellationToken) =>
+            async (string id, ClaimsPrincipal user, MealsService service, CancellationToken cancellationToken) =>
             {
-                var deleted = await service.DeleteMealAsync(id, cancellationToken);
+                var deleted = await service.DeleteMealAsync(id, user.GetUserId(), cancellationToken);
                 return deleted ? Results.NoContent() : Results.NotFound();
             });
     }
+
+    // 409 when a side dish already belongs to another meal, 400 when a side dish id doesn't exist.
+    private static IResult SideDishProblem(CreateMealResult result) =>
+        result.SideDishIdsInOtherMeals.Count > 0
+            ? Results.Conflict(new { side_dish_ids_in_other_meals = result.SideDishIdsInOtherMeals })
+            : Results.BadRequest(new { missing_side_dish_ids = result.MissingSideDishIds });
 
     private static MealDto ToDto(Meal meal) => new(
         meal.MealId,
@@ -72,6 +83,9 @@ public static class MealsEndpoints
         meal.MealName,
         meal.MealDescription,
         meal.SideDishIds,
+        meal.PrepTimeMinutes,
+        meal.CookTimeMinutes,
+        meal.Servings,
         meal.LikedAmount,
         meal.CreatedDate,
         meal.UpdatedDate);

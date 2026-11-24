@@ -5,8 +5,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.9" />
-  </ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.9" />  </ItemGroup>
 
   <ItemGroup>
     <None Include="Persistence\SeedData\users.json" CopyToOutputDirectory="PreserveNewest" />

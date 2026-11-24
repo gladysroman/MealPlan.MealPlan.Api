@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using MealPlan.MealPlan.Api.Auth;
 using MealPlan.MealPlan.Application.SideDishes;
 using MealPlan.MealPlan.Domain.Entities;
 
@@ -7,28 +9,28 @@ public static class SideDishesEndpoints
 {
     public static void MapSideDishesEndpoints(this WebApplication app)
     {
-        // AddSideDish — creates a side dish. MealId is optional so a side dish can be
-        // created before the meal that will reference it exists.
+        // AddSideDish — creates a side dish owned by the signed-in user. MealId is optional so a
+        // side dish can be created before the meal that will reference it exists.
         app.MapPost("/sideDishes",
-            async (CreateSideDishRequest request, SideDishesService service, CancellationToken cancellationToken) =>
+            async (CreateSideDishRequest request, ClaimsPrincipal user, SideDishesService service, CancellationToken cancellationToken) =>
             {
-                var sideDish = await service.AddSideDishAsync(request, cancellationToken);
+                var sideDish = await service.AddSideDishAsync(request, user.GetUserId(), cancellationToken);
                 return Results.Created($"/sideDishes/{sideDish.SideDishId}", ToDto(sideDish));
             });
 
         // UpdateSideDish — full replace of a side dish's editable fields.
         app.MapPut("/sideDishes/{id}",
-            async (string id, UpdateSideDishRequest request, SideDishesService service, CancellationToken cancellationToken) =>
+            async (string id, UpdateSideDishRequest request, ClaimsPrincipal user, SideDishesService service, CancellationToken cancellationToken) =>
             {
-                var sideDish = await service.UpdateSideDishAsync(id, request, cancellationToken);
+                var sideDish = await service.UpdateSideDishAsync(id, user.GetUserId(), request, cancellationToken);
                 return sideDish is null ? Results.NotFound() : Results.Ok(ToDto(sideDish));
             });
 
         // DeleteSideDish
         app.MapDelete("/sideDishes/{id}",
-            async (string id, SideDishesService service, CancellationToken cancellationToken) =>
+            async (string id, ClaimsPrincipal user, SideDishesService service, CancellationToken cancellationToken) =>
             {
-                var deleted = await service.DeleteSideDishAsync(id, cancellationToken);
+                var deleted = await service.DeleteSideDishAsync(id, user.GetUserId(), cancellationToken);
                 return deleted ? Results.NoContent() : Results.NotFound();
             });
     }
