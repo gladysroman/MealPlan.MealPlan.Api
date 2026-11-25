@@ -14,8 +14,6 @@ public class AuthService(
     // password and the response time doesn't reveal which emails have accounts.
     private static string? _dummyHash;
 
-    // Returns the user when the email and password match, otherwise null. The caller must not say
-    // which of the two was wrong.
     public async Task<User?> LoginAsync(LoginRequest request, CancellationToken cancellationToken)
     {
         var email = request.Email.Trim().ToLowerInvariant();
@@ -42,7 +40,6 @@ public class AuthService(
 
         if (result == PasswordVerificationResult.SuccessRehashNeeded)
         {
-            // The stored hash uses outdated settings; upgrade it now that we hold the real password.
             user.PasswordHash = passwordHasher.HashPassword(user, request.Password);
             await repository.UpdateAsync(user, cancellationToken);
             await unitOfWork.CommitAsync(cancellationToken);

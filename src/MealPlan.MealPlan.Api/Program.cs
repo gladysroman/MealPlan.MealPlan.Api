@@ -26,7 +26,6 @@ var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
-    // Everything requires sign-in by default; the development docs are opened up explicitly.
     app.MapOpenApi().AllowAnonymous();
     app.MapScalarApiReference().AllowAnonymous();
     app.MapGet("/", () => Results.Redirect("/scalar/v1")).AllowAnonymous();

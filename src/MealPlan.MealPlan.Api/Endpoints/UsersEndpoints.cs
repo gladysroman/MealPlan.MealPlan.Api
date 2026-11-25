@@ -10,7 +10,6 @@ public static class UsersEndpoints
     {
         var users = app.MapGroup("/users");
 
-        // GetUserInfo — returns the profile page's core fields for a user.
         users.MapGet("/{id}/profile", async (string id, UsersService service, CancellationToken cancellationToken) =>
         {
             var user = await service.GetUserByIdAsync(id, cancellationToken);

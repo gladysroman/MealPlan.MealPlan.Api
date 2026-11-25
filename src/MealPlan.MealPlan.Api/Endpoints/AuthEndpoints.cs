@@ -42,7 +42,6 @@ public static class AuthEndpoints
             })
             .AllowAnonymous();
 
-        // Logout — clears the cookie. Safe to call when already signed out.
         auth.MapPost("/logout",
             async (HttpContext httpContext) =>
             {
@@ -51,7 +50,6 @@ public static class AuthEndpoints
             })
             .AllowAnonymous();
 
-        // Me — who is signed in. The UI calls this on page load to find out if a session exists.
         auth.MapGet("/me",
             async (ClaimsPrincipal principal, UsersService service, HttpContext httpContext, CancellationToken cancellationToken) =>
             {
@@ -59,7 +57,6 @@ public static class AuthEndpoints
                 var user = userId is null ? null : await service.GetUserByIdAsync(userId, cancellationToken);
                 if (user is null)
                 {
-                    // The cookie is valid but its user no longer exists, so end the session.
                     await httpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
                     return Results.Unauthorized();
                 }

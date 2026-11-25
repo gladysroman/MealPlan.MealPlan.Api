@@ -27,8 +27,6 @@ public record SideDishIngredientDto(
     [property: JsonPropertyName("protein_g")] decimal ProteinG,
     [property: JsonPropertyName("fat_g")] decimal FatG);
 
-// The owner is the signed-in user, so there is no user_id in the request.
-// Every field but meal_id must be present; the description and recipe may be empty strings.
 public record CreateSideDishRequest(
     [property: JsonPropertyName("meal_id")] string? MealId,
     [property: JsonPropertyName("side_dish_name"), Required, MaxLength(100)] string SideDishName,

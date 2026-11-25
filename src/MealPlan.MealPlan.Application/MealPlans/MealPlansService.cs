@@ -5,9 +5,6 @@ namespace MealPlan.MealPlan.Application.MealPlans;
 
 public class MealPlansService(IMealRepository mealRepository, ISideDishRepository sideDishRepository)
 {
-    // Returns the composed meal page, or null when no meal matches BOTH the meal id and the user id
-    // (the endpoint turns that null into 204 No Content). A meal that exists but has no side dishes
-    // still returns successfully, with an empty side-dish list.
     public async Task<MealPlanResponse?> GetMealPlanAsync(string userId, string mealId, CancellationToken cancellationToken)
     {
         var meal = await mealRepository.GetByMealIdAndUserIdAsync(mealId, userId, cancellationToken);
@@ -21,8 +18,6 @@ public class MealPlansService(IMealRepository mealRepository, ISideDishRepositor
         return MealPlanResponse.From(meal, sideDishes);
     }
 
-    // Returns every meal page for the user, each composed with its own side dishes.
-    // Side dishes are fetched once for the whole user and grouped by meal to avoid one query per meal.
     public async Task<List<MealPlanResponse>> GetAllMealPlansAsync(string userId, CancellationToken cancellationToken)
     {
         var meals = await mealRepository.GetByUserIdAsync(userId, cancellationToken);

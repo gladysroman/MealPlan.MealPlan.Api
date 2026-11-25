@@ -8,7 +8,6 @@ public record LoginRequest(
     [property: JsonPropertyName("email"), Required, MaxLength(254)] string Email,
     [property: JsonPropertyName("password"), Required, MaxLength(128)] string Password);
 
-// Who is signed in. The UI needs user_id to build the /users/{userId}/... URLs.
 public record CurrentUserDto(
     [property: JsonPropertyName("user_id")] string UserId,
     [property: JsonPropertyName("name")] string Name,

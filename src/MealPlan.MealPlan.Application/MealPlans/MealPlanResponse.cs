@@ -4,8 +4,6 @@ using MealPlan.MealPlan.Domain.Entities;
 
 namespace MealPlan.MealPlan.Application.MealPlans;
 
-// Read-only composition of a meal + its side dishes for the full meal page.
-// Built via the static From(...) factory so the assembly logic lives in one testable place.
 public record MealPlanResponse(
     [property: JsonPropertyName("meal_id")] string MealId,
     [property: JsonPropertyName("meal_name")] string MealName,
@@ -38,8 +36,6 @@ public record MealPlanResponse(
 
 internal static class AllergenSet
 {
-    // De-duplicated (case-insensitive), alphabetically sorted allergen list — allergens
-    // are stored per embedded ingredient and rolled up into unions at read time.
     public static IReadOnlyList<string> Union(IEnumerable<string> allergens) =>
         allergens
             .Distinct(StringComparer.OrdinalIgnoreCase)

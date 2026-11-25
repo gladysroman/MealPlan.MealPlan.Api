@@ -16,12 +16,9 @@ public static class AuthenticationExtensions
     // Sliding alone would let an active session last forever, so sign-in also has a hard cap.
     private static readonly TimeSpan AbsoluteTimeout = TimeSpan.FromDays(7);
 
-    // Where the sign-in time is kept inside the cookie. The cookie's own IssuedUtc can't be
-    // used for the hard cap: it is reset every time sliding expiration renews the cookie.
+    // The cookie's own IssuedUtc is reset on every sliding renewal, so the sign-in time is kept separately.
     private const string SignedInAtKey = "signed_in_at";
 
-    // The properties to sign in with. IsPersistent keeps the cookie across browser restarts,
-    // for as long as the timeouts allow; without it the cookie would die with the browser window.
     public static AuthenticationProperties NewSessionProperties()
     {
         var properties = new AuthenticationProperties { IsPersistent = true };
@@ -29,15 +26,12 @@ public static class AuthenticationExtensions
         return properties;
     }
 
-    // A cookie with no readable sign-in time counts as expired.
     private static bool IsPastAbsoluteTimeout(AuthenticationProperties properties) =>
         !properties.Items.TryGetValue(SignedInAtKey, out var value)
         || !DateTimeOffset.TryParse(value, null, System.Globalization.DateTimeStyles.RoundtripKind, out var signedInAt)
         || DateTimeOffset.UtcNow - signedInAt > AbsoluteTimeout;
 
-    // The Ingredients API accepts this API's sign-in cookie. That only works while both use the
-    // same application name, key folder, cookie name and scheme, so these values must match
-    // Auth/AuthenticationExtensions.cs in MealPlan.Ingredients.Api.
+    // Must match MealPlan.Ingredients.Api, which reads this cookie.
     private const string DataProtectionApplicationName = "MealPlan";
 
     private static string DataProtectionKeysPath(IConfiguration configuration) =>
@@ -64,7 +58,6 @@ public static class AuthenticationExtensions
                 options.Cookie.Name = CookieName;
                 options.Cookie.HttpOnly = true;
                 options.Cookie.SameSite = SameSiteMode.Lax;
-                // Plain http://localhost is used in development; everywhere else require https.
                 options.Cookie.SecurePolicy = environment.IsDevelopment()
                     ? CookieSecurePolicy.SameAsRequest
                     : CookieSecurePolicy.Always;
@@ -84,7 +77,6 @@ public static class AuthenticationExtensions
                     return Task.CompletedTask;
                 };
 
-                // Runs on every request that carries a cookie.
                 options.Events.OnValidatePrincipal = async context =>
                 {
                     if (IsPastAbsoluteTimeout(context.Properties))
@@ -94,8 +86,7 @@ public static class AuthenticationExtensions
                         return;
                     }
 
-                    // The cookie only proves who the user was at sign-in. Make sure that user
-                    // still exists, so a deleted account loses access immediately.
+                    // A deleted account loses access straight away.
                     var userId = context.Principal?.FindFirstValue(ClaimTypes.NameIdentifier);
                     var users = context.HttpContext.RequestServices.GetRequiredService<UsersService>();
                     var user = userId is null

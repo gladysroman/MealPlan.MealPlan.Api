@@ -17,8 +17,6 @@ public record MealDto(
     [property: JsonPropertyName("created_date")] DateTime CreatedDate,
     [property: JsonPropertyName("updated_date")] DateTime UpdatedDate);
 
-// The owner is the signed-in user, so there is no user_id in the request.
-// Times and servings are optional: a new meal defaults to 0 minutes and 1 serving.
 public record CreateMealRequest(
     [property: JsonPropertyName("meal_name"), MaxLength(150)] string? MealName,
     [property: JsonPropertyName("meal_description"), MaxLength(1000)] string? MealDescription,

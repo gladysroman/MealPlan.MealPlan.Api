@@ -6,7 +6,6 @@ public class User
     public string Name { get; set; } = string.Empty;
     public string Email { get; set; } = string.Empty;
     public string PrefUnits { get; set; } = string.Empty;
-    // Output of IPasswordHasher<User>; never the password itself. Empty means the user cannot sign in.
     public string PasswordHash { get; set; } = string.Empty;
     public List<string> FriendIds { get; set; } = [];
     public List<string> MealIds { get; set; } = [];

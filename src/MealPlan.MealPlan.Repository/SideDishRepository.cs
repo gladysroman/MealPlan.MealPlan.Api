@@ -10,8 +10,9 @@ public class SideDishRepository(MealPlanDbContext dbContext) : ISideDishReposito
     public Task<List<SideDish>> GetAllAsync(CancellationToken cancellationToken) =>
         dbContext.SideDishes.AsNoTracking().ToListAsync(cancellationToken);
 
-    public Task<SideDish?> GetByIdAsync(string id, CancellationToken cancellationToken) =>
-        dbContext.SideDishes.AsNoTracking().FirstOrDefaultAsync(s => s.SideDishId == id, cancellationToken);
+    public Task<SideDish?> GetBySideDishIdAndUserIdAsync(string sideDishId, string userId, CancellationToken cancellationToken) =>
+        dbContext.SideDishes.AsNoTracking()
+            .FirstOrDefaultAsync(s => s.SideDishId == sideDishId && s.UserId == userId, cancellationToken);
 
     public Task<List<SideDish>> GetByMealIdAndUserIdAsync(string mealId, string userId, CancellationToken cancellationToken) =>
         dbContext.SideDishes.AsNoTracking()
@@ -23,9 +24,9 @@ public class SideDishRepository(MealPlanDbContext dbContext) : ISideDishReposito
             .Where(s => s.UserId == userId)
             .ToListAsync(cancellationToken);
 
-    public Task<List<SideDish>> GetExistingSideDishesByIdsAsync(List<string> ids, string userId, CancellationToken cancellationToken) =>
+    public Task<List<SideDish>> GetBySideDishIdsAndUserIdAsync(List<string> sideDishIds, string userId, CancellationToken cancellationToken) =>
         dbContext.SideDishes
-            .Where(s => s.UserId == userId && ids.Contains(s.SideDishId))
+            .Where(s => s.UserId == userId && sideDishIds.Contains(s.SideDishId))
             .ToListAsync(cancellationToken);
 
     public Task<SideDish> AddAsync(SideDish sideDish, CancellationToken cancellationToken)
@@ -43,9 +44,9 @@ public class SideDishRepository(MealPlanDbContext dbContext) : ISideDishReposito
         return existing;
     }
 
-    public async Task<bool> DeleteAsync(string id, CancellationToken cancellationToken)
+    public async Task<bool> DeleteAsync(string sideDishId, CancellationToken cancellationToken)
     {
-        var sideDish = await dbContext.SideDishes.FirstOrDefaultAsync(s => s.SideDishId == id, cancellationToken);
+        var sideDish = await dbContext.SideDishes.FirstOrDefaultAsync(s => s.SideDishId == sideDishId, cancellationToken);
         if (sideDish is null)
         {
             return false;
