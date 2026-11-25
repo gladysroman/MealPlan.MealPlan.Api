@@ -15,35 +15,42 @@ public class MealsService(
     private const int MaxAssignSideDishesAttempts = 4;
     private static readonly TimeSpan AssignSideDishesRetryDelay = TimeSpan.FromMilliseconds(250);
 
-    // Must stay in sync with the [MaxLength] on MealName/MealDescription in MealDto.cs --
-    // generated values are truncated to these same limits so they never violate the very
-    // validation rule that bounds a user-supplied override.
+    // Same limits as [MaxLength] on meal_name and meal_description in MealDto.cs.
     private const int MealNameMaxLength = 150;
     private const int MealDescriptionMaxLength = 1000;
+
+    private const int DefaultServings = 1;
 
     public Task<List<Meal>> GetMealsAsync(CancellationToken cancellationToken) =>
         repository.GetAllAsync(cancellationToken);
 
-    public Task<Meal?> GetMealByIdAsync(string id, CancellationToken cancellationToken) =>
-        repository.GetByIdAsync(id, cancellationToken);
-
-    public async Task<CreateMealResult> AddMealAsync(CreateMealRequest request, CancellationToken cancellationToken)
+    public async Task<CreateMealResult> AddMealAsync(CreateMealRequest request, string userId, CancellationToken cancellationToken)
     {
+        var sideDishIds = request.SideDishIds.Distinct().ToList();
         var date = DateTime.UtcNow;
         var meal = new Meal
         {
             MealId = $"meal_{Guid.NewGuid():N}",
-            UserId = request.UserId,
-            SideDishIds = request.SideDishIds,
+            UserId = userId,
+            SideDishIds = sideDishIds,
+            PrepTimeMinutes = request.PrepTimeMinutes ?? 0,
+            CookTimeMinutes = request.CookTimeMinutes ?? 0,
+            Servings = request.Servings ?? DefaultServings,
             LikedAmount = 0,
             CreatedDate = date,
             UpdatedDate = date
         };
 
-        var assignResult = await TryAssignSideDishesWithRetryAsync(request.SideDishIds, meal.MealId, cancellationToken);
+        var idsInOtherMeals = await FindSideDishIdsInOtherMealsAsync(sideDishIds, meal.MealId, userId, cancellationToken);
+        if (idsInOtherMeals.Count > 0)
+        {
+            return new CreateMealResult(null, [], idsInOtherMeals);
+        }
+
+        var assignResult = await TryAssignSideDishesWithRetryAsync(sideDishIds, meal.MealId, userId, cancellationToken);
         if (assignResult.MissingSideDishIds.Count > 0)
         {
-            return new CreateMealResult(null, assignResult.MissingSideDishIds);
+            return new CreateMealResult(null, assignResult.MissingSideDishIds, []);
         }
 
         meal.MealName = request.MealName ?? GenerateMealName(assignResult.SideDishes);
@@ -52,19 +59,29 @@ public class MealsService(
         await repository.AddAsync(meal, cancellationToken);
         await unitOfWork.CommitAsync(cancellationToken);
 
-        return new CreateMealResult(meal, []);
+        return new CreateMealResult(meal, [], []);
     }
 
-    // Retries the side-dish existence check/stamp a few times, rechecking the full requested
-    // list each attempt. Covers a timing race where POST /sideDishes calls are still committing
-    // when POST /meals arrives, without treating a genuinely-missing id any differently.
-    private async Task<TryAssignSideDishesResult> TryAssignSideDishesWithRetryAsync(List<string> sideDishIds, string mealId, CancellationToken cancellationToken)
+    // Deleting a meal deletes its side dishes, so a side dish can belong to only one meal.
+    private async Task<List<string>> FindSideDishIdsInOtherMealsAsync(List<string> sideDishIds, string mealId, string userId, CancellationToken cancellationToken)
+    {
+        var meals = await repository.GetByUserIdAsync(userId, cancellationToken);
+        var idsInOtherMeals = meals
+            .Where(meal => meal.MealId != mealId)
+            .SelectMany(meal => meal.SideDishIds)
+            .ToHashSet();
+
+        return sideDishIds.Where(idsInOtherMeals.Contains).ToList();
+    }
+
+    // POST /sideDishes calls may still be committing when POST /meals arrives.
+    private async Task<TryAssignSideDishesResult> TryAssignSideDishesWithRetryAsync(List<string> sideDishIds, string mealId, string userId, CancellationToken cancellationToken)
     {
         var result = new TryAssignSideDishesResult([], []);
 
         for (var attempt = 1; attempt <= MaxAssignSideDishesAttempts; attempt++)
         {
-            result = await sideDishesService.TryAssignSideDishesToMealAsync(sideDishIds, mealId, cancellationToken);
+            result = await sideDishesService.TryAssignSideDishesToMealAsync(sideDishIds, mealId, userId, cancellationToken);
             if (result.MissingSideDishIds.Count == 0)
             {
                 return result;
@@ -87,9 +104,6 @@ public class MealsService(
         return result;
     }
 
-    // "A, B & C" -- comma between all but the last pair, "&" before the last. If the joined
-    // name would exceed MealNameMaxLength, whole side dish names are dropped from the end
-    // (not sliced mid-word) until it fits.
     private static string GenerateMealName(IReadOnlyList<SideDish> sideDishes)
     {
         if (sideDishes.Count == 0)
@@ -107,8 +121,6 @@ public class MealsService(
         return joined.Length > MealNameMaxLength ? joined[..MealNameMaxLength] : joined;
     }
 
-    // Joins each side dish's description as its own sentence, including only as many whole
-    // sentences (not partial/mid-sentence slices) as fit within MealDescriptionMaxLength.
     private static string GenerateMealDescription(IReadOnlyList<SideDish> sideDishes)
     {
         if (sideDishes.Count == 0)
@@ -116,10 +128,18 @@ public class MealsService(
             return "No side dishes yet.";
         }
 
-        var builder = new StringBuilder();
-        foreach (var sideDish in sideDishes)
+        var sentences = sideDishes
+            .Select(sideDish => AsSentence(sideDish.SideDishDescription))
+            .Where(sentence => sentence.Length > 0)
+            .ToList();
+        if (sentences.Count == 0)
         {
-            var sentence = AsSentence(sideDish.SideDishDescription);
+            return "No description yet.";
+        }
+
+        var builder = new StringBuilder();
+        foreach (var sentence in sentences)
+        {
             var separatorLength = builder.Length > 0 ? 1 : 0;
             if (builder.Length + separatorLength + sentence.Length > MealDescriptionMaxLength)
             {
@@ -139,14 +159,10 @@ public class MealsService(
             return builder.ToString();
         }
 
-        // Even the first side dish's normalized description alone exceeds the limit (rare --
-        // only possible because AsSentence can add a trailing period) -- hard-truncate as a
-        // last resort so the result never violates MealDescriptionMaxLength.
-        return AsSentence(sideDishes[0].SideDishDescription)[..MealDescriptionMaxLength];
+        // One sentence can still be too long, because AsSentence may add a full stop.
+        return sentences[0][..MealDescriptionMaxLength];
     }
 
-    // Capitalizes the first letter and ensures terminal punctuation, so descriptions read as
-    // distinct sentences when joined regardless of how the caller typed them in.
     private static string AsSentence(string text)
     {
         var trimmed = text.Trim();
@@ -164,55 +180,64 @@ public class MealsService(
             ? items.Count == 1 ? items[0] : string.Empty
             : string.Join(", ", items.Take(items.Count - 1)) + " & " + items[^1];
 
-    // Returns null when the meal doesn't exist (404). Otherwise a CreateMealResult: Meal null
-    // means a newly-referenced side dish id doesn't exist (400); Meal set means success (200).
-    public async Task<CreateMealResult?> UpdateMealAsync(string id, UpdateMealRequest request, CancellationToken cancellationToken)
+    // Null means the meal was not found. A result with no Meal means a side dish problem.
+    public async Task<CreateMealResult?> UpdateMealAsync(string mealId, string userId, UpdateMealRequest request, CancellationToken cancellationToken)
     {
-        var existing = await repository.GetByIdAsync(id, cancellationToken);
+        var existing = await repository.GetByMealIdAndUserIdAsync(mealId, userId, cancellationToken);
         if (existing is null)
         {
             return null;
         }
 
-        // No-orphan policy: side dishes dropped from this meal get deleted, not just detached.
-        var removedSideDishIds = existing.SideDishIds.Except(request.SideDishIds).ToList();
+        var sideDishIds = request.SideDishIds.Distinct().ToList();
+
+        var idsInOtherMeals = await FindSideDishIdsInOtherMealsAsync(sideDishIds, mealId, userId, cancellationToken);
+        if (idsInOtherMeals.Count > 0)
+        {
+            return new CreateMealResult(null, [], idsInOtherMeals);
+        }
+
+        // Side dishes dropped from the meal are deleted, not detached.
+        var removedSideDishIds = existing.SideDishIds.Except(sideDishIds).ToList();
         if (removedSideDishIds.Count > 0)
         {
             await sideDishesService.DeleteSideDishesAsync(removedSideDishIds, cancellationToken);
         }
 
-        var assignResult = await TryAssignSideDishesWithRetryAsync(request.SideDishIds, id, cancellationToken);
+        var assignResult = await TryAssignSideDishesWithRetryAsync(sideDishIds, mealId, userId, cancellationToken);
         if (assignResult.MissingSideDishIds.Count > 0)
         {
-            return new CreateMealResult(null, assignResult.MissingSideDishIds);
+            return new CreateMealResult(null, assignResult.MissingSideDishIds, []);
         }
 
         existing.MealName = request.MealName ?? GenerateMealName(assignResult.SideDishes);
         existing.MealDescription = request.MealDescription ?? GenerateMealDescription(assignResult.SideDishes);
-        existing.SideDishIds = request.SideDishIds;
+        existing.SideDishIds = sideDishIds;
+        existing.PrepTimeMinutes = request.PrepTimeMinutes ?? existing.PrepTimeMinutes;
+        existing.CookTimeMinutes = request.CookTimeMinutes ?? existing.CookTimeMinutes;
+        existing.Servings = request.Servings ?? existing.Servings;
         existing.UpdatedDate = DateTime.UtcNow;
 
         var updated = await repository.UpdateAsync(existing, cancellationToken);
         await unitOfWork.CommitAsync(cancellationToken);
 
-        return new CreateMealResult(updated, []);
+        return new CreateMealResult(updated, [], []);
     }
 
-    public async Task<bool> DeleteMealAsync(string id, CancellationToken cancellationToken)
+    public async Task<bool> DeleteMealAsync(string mealId, string userId, CancellationToken cancellationToken)
     {
-        var existing = await repository.GetByIdAsync(id, cancellationToken);
+        var existing = await repository.GetByMealIdAndUserIdAsync(mealId, userId, cancellationToken);
         if (existing is null)
         {
             return false;
         }
 
-        // No-orphan policy: deleting a meal cascades to delete all of its side dishes.
         if (existing.SideDishIds.Count > 0)
         {
             await sideDishesService.DeleteSideDishesAsync(existing.SideDishIds, cancellationToken);
         }
 
-        await repository.DeleteAsync(id, cancellationToken);
+        await repository.DeleteAsync(mealId, cancellationToken);
         await unitOfWork.CommitAsync(cancellationToken);
 
         return true;

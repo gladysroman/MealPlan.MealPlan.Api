@@ -1,7 +1,6 @@
 namespace MealPlan.MealPlan.Domain.Entities;
 
-// Ingredient embedded directly in a side dish (no join to the ingredients catalogue).
-// Key nutrition fields are copied in at write time.
+// Copied from the ingredients catalogue when the side dish is saved; there is no join.
 public class SideDishIngredient
 {
     public string IngredientId { get; set; } = string.Empty;

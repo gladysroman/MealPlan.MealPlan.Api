@@ -2,8 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace MealPlan.MealPlan.Application.Common;
 
-// [MaxLength] on a collection validates item COUNT, not the length of each item -- this
-// validates that every string in the collection is at most maxLength characters.
+// [MaxLength] on a collection limits the item count; this limits the length of each item.
 public class MaxElementLengthAttribute(int maxLength) : ValidationAttribute
 {
     public override bool IsValid(object? value) =>

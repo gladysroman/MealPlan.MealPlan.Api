@@ -13,7 +13,4 @@ public class Meal
     public int LikedAmount { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime UpdatedDate { get; set; }
-
-    // Note: total nutrition is not stored on the meal. It is summed at read time
-    // across the ingredients embedded in this meal's side dishes.
 }

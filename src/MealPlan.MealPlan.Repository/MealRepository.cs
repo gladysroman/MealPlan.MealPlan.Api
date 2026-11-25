@@ -10,9 +10,6 @@ public class MealRepository(MealPlanDbContext dbContext) : IMealRepository
     public Task<List<Meal>> GetAllAsync(CancellationToken cancellationToken) =>
         dbContext.Meals.AsNoTracking().ToListAsync(cancellationToken);
 
-    public Task<Meal?> GetByIdAsync(string id, CancellationToken cancellationToken) =>
-        dbContext.Meals.AsNoTracking().FirstOrDefaultAsync(m => m.MealId == id, cancellationToken);
-
     public Task<Meal?> GetByMealIdAndUserIdAsync(string mealId, string userId, CancellationToken cancellationToken) =>
         dbContext.Meals.AsNoTracking()
             .FirstOrDefaultAsync(m => m.MealId == mealId && m.UserId == userId, cancellationToken);
@@ -34,9 +31,9 @@ public class MealRepository(MealPlanDbContext dbContext) : IMealRepository
         return Task.FromResult(meal);
     }
 
-    public async Task<bool> DeleteAsync(string id, CancellationToken cancellationToken)
+    public async Task<bool> DeleteAsync(string mealId, CancellationToken cancellationToken)
     {
-        var meal = await dbContext.Meals.FirstOrDefaultAsync(m => m.MealId == id, cancellationToken);
+        var meal = await dbContext.Meals.FirstOrDefaultAsync(m => m.MealId == mealId, cancellationToken);
         if (meal is null)
         {
             return false;

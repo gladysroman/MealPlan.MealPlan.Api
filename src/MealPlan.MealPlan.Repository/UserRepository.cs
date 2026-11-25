@@ -13,6 +13,10 @@ public class UserRepository(MealPlanDbContext dbContext) : IUserRepository
     public Task<User?> GetByIdAsync(string id, CancellationToken cancellationToken) =>
         dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.UserId == id, cancellationToken);
 
+    // Emails are matched case-insensitively. Callers pass a trimmed, lower-cased email.
+    public Task<User?> GetByEmailAsync(string email, CancellationToken cancellationToken) =>
+        dbContext.Users.AsNoTracking().FirstOrDefaultAsync(u => u.Email.ToLower() == email, cancellationToken);
+
     public Task<User> AddAsync(User user, CancellationToken cancellationToken)
     {
         dbContext.Users.Add(user);

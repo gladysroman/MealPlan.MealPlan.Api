@@ -4,8 +4,6 @@ using MealPlan.MealPlan.Domain.Entities;
 
 namespace MealPlan.MealPlan.Application.MealPlans;
 
-// Read-only composition of a meal + its side dishes for the full meal page.
-// Built via the static From(...) factory so the assembly logic lives in one testable place.
 public record MealPlanResponse(
     [property: JsonPropertyName("meal_id")] string MealId,
     [property: JsonPropertyName("meal_name")] string MealName,
@@ -21,7 +19,6 @@ public record MealPlanResponse(
     {
         var sideDishResponses = sideDishes.Select(SideDishResponse.From).ToList();
 
-        // Meal-level allergens = union of each side dish's (already-unioned) allergens.
         var allergens = AllergenSet.Union(sideDishResponses.SelectMany(sideDish => sideDish.Allergens));
 
         return new MealPlanResponse(
@@ -39,8 +36,6 @@ public record MealPlanResponse(
 
 internal static class AllergenSet
 {
-    // De-duplicated (case-insensitive), alphabetically sorted allergen list — allergens
-    // are stored per embedded ingredient and rolled up into unions at read time.
     public static IReadOnlyList<string> Union(IEnumerable<string> allergens) =>
         allergens
             .Distinct(StringComparer.OrdinalIgnoreCase)
@@ -63,7 +58,6 @@ public record NutritionPerServingResponse(
         var totalProtein = ingredients.Sum(ingredient => ingredient.ProteinG);
         var totalFat = ingredients.Sum(ingredient => ingredient.FatG);
 
-        // Guard against a bad/zero serving count so we never divide by zero.
         var divisor = servings > 0 ? servings : 1;
 
         return new NutritionPerServingResponse(
@@ -87,7 +81,6 @@ public record SideDishResponse(
         sideDish.SideDishName,
         sideDish.SideDishDescription,
         sideDish.CookingRecipe,
-        // Side-dish allergens are the union across its embedded ingredients.
         AllergenSet.Union(sideDish.Ingredients.SelectMany(ingredient => ingredient.Allergens)),
         sideDish.Ingredients.Select(ingredient => new SideDishIngredientDto(
             ingredient.IngredientId,
